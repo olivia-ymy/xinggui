@@ -592,13 +592,12 @@ function renderChat() {
         if (thinkEl) thinkEl.remove();
         addMsg('master', '抱歉，服务响应超时。请检查网络后重试，或稍等几秒后再次发送。（内测阶段 Worker 可能正在冷启动）');
       }
-    }, 25000);
+    }, 45000);
 
     fetch('https://api.oyummy.top/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer sk-6gpgNC8L2b2GFebjIeKqnDo5j4zKtWa3Jylv5Pm59GLRApkU'
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         model: 'MiniMax-M2.7-highspeed',
@@ -631,7 +630,7 @@ function renderChat() {
             var lastReply = conversationHistory[conversationHistory.length - 1].content;
             fetch('https://api.oyummy.top/v1/chat/completions', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer sk-6gpgNC8L2b2GFebjIeKqnDo5j4zKtWa3Jylv5Pm59GLRApkU' },
+              headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ model: 'MiniMax-M2.7-highspeed', messages: conversationHistory.concat([{ role: 'user', content: '请继续上一条回复的未尽之处。' }]), max_tokens: 3500, temperature: 0.7 })
             }).then(function(res) { return res.json(); }).then(function(data2) {
               var more = data2.choices && data2.choices[0] && data2.choices[0].message && data2.choices[0].message.content;
@@ -710,7 +709,7 @@ function renderChat() {
 
     fetch('https://api.oyummy.top/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer sk-6gpgNC8L2b2GFebjIeKqnDo5j4zKtWa3Jylv5Pm59GLRApkU' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: 'MiniMax-M2.7-highspeed', messages: conversationHistory.concat([{ role: 'user', content: initText }]), max_tokens: 3500, temperature: 0.7 })
     }).then(function(res) { clearTimeout(timer); if (!res.ok) throw new Error('err'); return res.json(); })
       .then(function(data) {
