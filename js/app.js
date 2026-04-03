@@ -516,14 +516,13 @@ function renderChat() {
     '<div style="margin-left:auto;display:flex;gap:8px;"><button class="btn btn-ghost" id="fateResetBtn" style="padding:6px 12px;font-size:0.85rem;">🔄 重填</button>' +
     '<button class="btn btn-ghost" id="fateExitBtn" style="padding:6px 12px;font-size:0.85rem;">✕</button></div></div>' +
     '<div id="fateMsgs" style="flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:20px;">' +
-    '<div style="display:flex;gap:12px;max-width:85%;"><span style="width:36px;height:36px;border-radius:50%;background:rgba(139,92,246,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">🧙</span>' +
+    '<div id="fateInitMsg" style="display:flex;gap:12px;max-width:85%;">' +
+    '<span style="width:36px;height:36px;border-radius:50%;background:rgba(139,92,246,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">🧙</span>' +
     '<div style="padding:12px;border-radius:12px;background:var(--bg-tertiary);border:1px solid rgba(139,92,246,0.1);line-height:1.7;">' +
-    '<p>善知识，贫道已收到您的命盘资讯。</p>' +
-    '<p><strong>命主：</strong>' + genderText + '，' + profile.birthDate + ' ' + profile.birthTime + '，' + profile.birthPlace + '（' + calText + '）</p>' +
-    '<p>正在为您排盘分析，请稍候...</p></div></div></div>' +
+    '<p>正在读取命盘信息...</p></div></div></div>' +
     '<div style="display:flex;gap:12px;padding:16px 24px;background:var(--bg-tertiary);border-top:1px solid rgba(139,92,246,0.1);">' +
-    '<textarea id="fateInput" placeholder="输入您想咨询的问题..." rows="1" style="flex:1;background:var(--bg-primary);border:1px solid rgba(139,92,246,0.2);border-radius:8px;padding:12px;color:var(--text-primary);resize:none;font-family:inherit;font-size:1rem;line-height:1.5;max-height:150px;"></textarea>' +
-    '<button class="btn btn-primary" id="fateSendBtn" style="padding:12px 24px;align-self:flex-end;">发送</button></div></div></div>';
+    '<textarea id="fateInput" placeholder="输入您想咨询的问题..." rows="1" style="flex:1;background:var(--bg-primary);border:1px solid rgba(139,92,246,0.2);border-radius:8px;padding:12px;color:var(--text-primary);resize:none;font-family:inherit;font-size:1rem;line-height:1.5;max-height:150px;" disabled></textarea>' +
+    '<button class="btn btn-primary" id="fateSendBtn" style="padding:12px 24px;align-self:flex-end;" disabled>发送</button></div></div></div>';
 
   addChatStyles();
 
@@ -656,6 +655,45 @@ function renderChat() {
     d.textContent = text;
     return d.innerHTML;
   }
+
+  // Auto-init: send profile to LLM on page load
+  function autoInit() {
+    var initMsg = document.getElementById('fateInitMsg');
+    if (initMsg) {
+      initMsg.innerHTML =
+        '<span style="width:36px;height:36px;border-radius:50%;background:rgba(139,92,246,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">🧙</span>' +
+        '<div style="padding:12px;border-radius:12px;background:var(--bg-tertiary);border:1px solid rgba(139,92,246,0.1);line-height:1.7;">' +
+        '<p>善知识，贫道已收到您的命盘资讯。</p>' +
+        '<p><strong>命主：</strong>' + genderText + '，' + profile.birthDate + ' ' + profile.birthTime + '，' + profile.birthPlace + '（' + calText + '）</p>' +
+        '<p id="fateThinking">正在为您排盘分析，请稍候...</p></div>';
+    }
+
+    var input = document.getElementById('fateInput');
+    var btn = document.getElementById('fateSendBtn');
+    input.disabled = true;
+    btn.disabled = true;
+
+    var initText = '命主信息：' + genderText + '，' + profile.birthDate + ' ' + profile.birthTime + '，' + profile.birthPlace + '（' + calText + '）' + (astrolabeStr ? '\n\n' + astrolabeStr : '') + '\n\n请根据以上命盘信息，用温暖专业的语气与命主交流，寒暄后开始分析命盘。';
+
+    var done = false;
+    var timer = setTimeout(function() {
+      if (!done) { done = true; var t = document.getElementById('fateThinking'); if (t) t.outerHTML = '<p style="color:var(--danger);">服务响应超时，请刷新页面重试。</p>'; input.disabled = false; btn.disabled = false; }
+    }, 30000);
+
+    fetch('https://model.imfan.top/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer sk-6gpgNC8L2b2GFebjIeKqnDo5j4zKtWa3Jylv5Pm59GLRApkU' },
+      body: JSON.stringify({ model: 'MiniMax-M2.7-highspeed', messages: conversationHistory.concat([{ role: 'user', content: initText }]), max_tokens: 2000, temperature: 0.7 })
+    }).then(function(res) { clearTimeout(timer); if (!res.ok) throw new Error('err'); return res.json(); })
+      .then(function(data) {
+        if (done) return;
+        var reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+        if (reply) { done = true; conversationHistory.push({ role: 'user', content: initText }); conversationHistory.push({ role: 'assistant', content: reply }); var t = document.getElementById('fateThinking'); if (t) t.remove(); addMsg('master', reply); input.disabled = false; btn.disabled = false; input.focus(); }
+      })
+      .catch(function() { if (done) return; clearTimeout(timer); done = true; var t = document.getElementById('fateThinking'); if (t) t.outerHTML = '<p style="color:var(--danger);">抱歉，服务暂时不可用，请刷新页面重试。</p>'; input.disabled = false; btn.disabled = false; });
+  }
+
+  setTimeout(autoInit, 300);
 }
 
 // ==================== STYLES ====================
