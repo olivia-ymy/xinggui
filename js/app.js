@@ -97,10 +97,14 @@ function renderHome() {
           astroHtml += '</div>';
         }
 
+        var todayStr = data._context && data._context.date ? data._context.date.replace(/-/g, '年').replace(/T.*/, '日') : new Date().toLocaleDateString('zh-CN');
+        var weekDays = ['周日','周一','周二','周三','周四','周五','周六'];
+        var wd = weekDays[new Date().getDay()];
         resultDiv.innerHTML = '<div class="card" style="padding:24px;">' +
           '<div style="text-align:center;margin-bottom:16px;">' +
           '<div style="font-size:2rem;margin-bottom:4px;">' + ZODIACS.find(function(z){return z.name===zodiac;}).icon + '</div>' +
           '<h3 style="color:var(--accent-purple);">' + zodiac + ' 今日运势</h3>' +
+          '<div style="font-size:0.85rem;color:var(--text-muted);margin-top:2px;">' + todayStr + ' ' + wd + '</div>' +
           '<div style="font-size:1.2rem;color:' + scoreColor + ';margin-top:4px;">' + stars + '</div>' +
           '<div style="font-size:0.85rem;color:var(--text-muted);margin-top:4px;">综合指数 ' + data.score + '/5</div>' +
           (data.rating ? '<div style="margin-top:12px;padding:10px 16px;background:rgba(139,92,246,0.08);border-radius:8px;border-left:3px solid var(--accent-purple);"><span style="color:var(--accent-purple);font-weight:600;">✦ ' + data.rating + '</span></div>' : '') + '</div>' +
