@@ -293,27 +293,118 @@ var API = {
     if (cached) {
       try { return Promise.resolve(JSON.parse(cached)); } catch(e) {}
     }
+
     // Build real astrological context
     var parts = date.split('-');
     var year = parseInt(parts[0]), month = parseInt(parts[1]), day = parseInt(parts[2]);
     var ctx = API.getSignContext(zodiac, year, month, day);
-    var ctxStr = API.formatContext(ctx);
+    var data = API.computeHoroscopeFromContext(zodiac, ctx);
+    data._context = ctx;
 
-    var sys = '你是一位专业占星师，根据以下真实行星位置和相位数据，分析星座运势。回复要专业、有洞见、简洁。用第二人称。';
-    var user = '请分析' + zodiac + '今日（' + date + '）运势，基于以下真实星象数据：\n' + ctxStr + '\n\n请以JSON格式返回，字段：score(3.0-5.0一位小数), love(0-100整数), career(0-100整数), wealth(0-100整数), luckyColor(颜色), luckyNumber(1-9整数), luckyDirection(方向), tip(一两句运势提示，中文，基于当日真实星象）。只返回JSON，不要其他内容。';
-
-    return API.callLLM(sys, user, 300).then(function(text) {
-      var data;
-      try {
-        data = JSON.parse(text);
-      } catch(e) {
-        data = { score: 4.0, love: 75, career: 70, wealth: 65, luckyColor: '紫色', luckyNumber: 7, luckyDirection: '东方', tip: '今日星象平稳，顺势而为。' };
-      }
-      // Also cache the raw context for display
-      data._context = ctx;
+    // Try LLM for richer text, but don't wait
+    API.callLLM(
+      '你是一位专业占星师，根据行星位置数据分析运势，用一两句话简洁回复。用第二人称。',
+      zodiac + ' 今日运势基于：' + API.formatContext(ctx) + '。请输出一两句运势提示（中文）。',
+      150
+    ).then(function(text) {
+      data.tip = text.substring(0, 100);
       try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch(e) {}
-      return data;
+    }).catch(function() {});
+
+    try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch(e) {}
+    return Promise.resolve(data);
+  },
+
+  computeHoroscopeFromContext: function(zodiac, ctx) {
+    var has = function(name) {
+      return ctx.planetsInSign.some(function(p){ return p.name === name; });
+    };
+    var hasAny = function() {
+      for (var i = 0; i < arguments.length; i++) {
+        if (has(arguments[i])) return true;
+      }
+      return false;
+    };
+
+    // Base scores from element of the sign
+    var elemScores = { '火': { base: 72, love: 68, career: 80, wealth: 65 },
+                       '土': { base: 65, love: 70, career: 75, wealth: 80 },
+                       '风': { base: 75, love: 80, career: 70, wealth: 60 },
+                       '水': { base: 68, love: 85, career: 65, wealth: 70 } };
+    var signElem = ctx.planetsInSign.length > 0 ? ctx.planetsInSign[0].sign.element :
+                   (['白羊','金牛','双子','巨蟹','狮子','处女','天秤','天蝎','射手','摩羯','水瓶','双鱼'][Math.floor(Math.random()*12)]);
+    var elem = { '白羊': '火','金牛': '土','双子': '风','巨蟹': '水','狮子': '火','处女': '土','天秤': '风','天蝎': '水','射手': '火','摩羯': '土','水瓶': '风','双鱼': '水' }[zodiac] || '火';
+    var base = elemScores[elem] || { base: 70, love: 70, career: 70, wealth: 70 };
+
+    // Adjust by planets in sign
+    var bonus = 0;
+    var love = base.love;
+    var career = base.career;
+    var wealth = base.wealth;
+
+    if (has('太阳')) { career += 8; wealth += 5; }
+    if (has('月亮')) { love += 10; career -= 3; }
+    if (has('水星')) { career += 5; love += 3; }
+    if (has('金星')) { love += 15; wealth += 8; }
+    if (has('火星')) { career += 10; love -= 5; wealth += 3; }
+    if (has('木星')) { love += 8; wealth += 10; career += 5; }
+    if (has('土星')) { career += 5; love -= 8; wealth += 3; }
+
+    // Aspect effects
+    ctx.aspects.forEach(function(a) {
+      if (a.name === '三分' || a.name === '六分') { love += 3; career += 3; }
+      if (a.name === '四分') { career += 5; love -= 5; }
+      if (a.name === '二分') { love -= 5; career += 3; }
+      if (a.name === '合相') { career += 5; love += 5; }
     });
+
+    // Moon sign affects today's mood
+    var moonBonus = { '金牛': 'love', '巨蟹': 'love', '天蝎': 'love', '双鱼': 'love',
+                       '白羊': 'career', '狮子': 'career', '射手': 'career',
+                       '双子': 'wealth', '处女': 'wealth', '水瓶': 'wealth' };
+    var moonBoost = moonBonus[ctx.moonSign] || '';
+    if (moonBoost === 'love') love += 5;
+    if (moonBoost === 'career') career += 5;
+    if (moonBoost === 'wealth') wealth += 5;
+
+    love = Math.min(99, Math.max(40, love));
+    career = Math.min(99, Math.max(40, career));
+    wealth = Math.min(99, Math.max(40, wealth));
+    var score = Math.round(((love + career + wealth) / 3 / 100 * 5) * 10) / 10;
+    score = Math.min(5, Math.max(3, score));
+
+    // Lucky things - deterministic from planetary positions
+    var colorMap = { '太阳': '金色','月亮': '银色','水星': '蓝绿','金星': '粉白','火星': '红色','木星': '紫色','土星': '黑色' };
+    var colors = ['红色','橙色','黄色','绿色','蓝色','紫色','金色','白色'];
+    var color = has('太阳') ? '金色' : has('金星') ? '粉白' : has('木星') ? '紫色' : has('火星') ? '红色' : colors[ctx.planetsInSign.length % colors.length];
+    var nums = [1,2,3,4,5,6,7,8,9];
+    var num = nums[ctx.planetsInSign.length % 9];
+    var dirs = ['东方','西方','南方','北方','东南','西南','东北','西北'];
+    var dir = dirs[Math.floor((ctx.planetsInSign.length * 3 + ctx.aspects.length) % 8)];
+
+    // Generate tip from real conditions
+    var tips = [];
+    if (has('火星') && has('木星')) tips.push('木火相生，行动力与好运并存，大胆推进。');
+    else if (has('火星')) tips.push('火星行运，注意控制冲动，三思而后行。');
+    else if (has('金星')) tips.push('金星眷顾，感情人际顺利，桃花运佳。');
+    else if (has('木星')) tips.push('木星加持，运势上扬，利于学习、旅行和扩张。');
+    else if (has('土星')) tips.push('土星考验，压力与机遇并存，耐心应对可有所成。');
+    else if (has('太阳')) tips.push('日照事业，贵人相助，工作上表现机会多。');
+    else if (has('月亮')) tips.push('月耀情感，内心感受丰富，适合与家人相处。');
+    else tips.push('星象平稳，稳中求进，把握当下，顺势而为。');
+
+    if (ctx.aspects.length >= 3) tips.push('今日相位丰富，能量活跃，适合多尝试新事物。');
+
+    return {
+      score: score,
+      love: love,
+      career: career,
+      wealth: wealth,
+      luckyColor: color,
+      luckyNumber: num,
+      luckyDirection: dir,
+      tip: tips[0]
+    };
   },
 
   // Add a method to get raw context (for display purposes)
