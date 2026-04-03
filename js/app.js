@@ -132,14 +132,19 @@ function renderChart() {
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
         '<div style="text-align:center;padding:12px;background:var(--bg-primary);border-radius:6px;">' +
         '<div style="font-size:0.8rem;color:var(--text-muted);">太阳星座</div>' +
-        '<div style="font-size:1.2rem;color:var(--accent-gold);font-weight:600;">' + data.sun + '</div></div>' +
+        '<div style="font-size:1.2rem;color:var(--accent-gold);font-weight:600;">' + data.sun + '</div>' +
+        '<div style="font-size:0.75rem;color:var(--text-muted);">' + (data.sunDegree || '') + '°</div></div>' +
         '<div style="text-align:center;padding:12px;background:var(--bg-primary);border-radius:6px;">' +
         '<div style="font-size:0.8rem;color:var(--text-muted);">月亮星座</div>' +
-        '<div style="font-size:1.2rem;color:var(--accent-gold);font-weight:600;">' + data.moon + '</div></div>' +
+        '<div style="font-size:1.2rem;color:var(--accent-gold);font-weight:600;">' + data.moon + '</div>' +
+        '<div style="font-size:0.75rem;color:var(--text-muted);">' + (data.moonDegree || '') + '°</div></div>' +
         '<div style="text-align:center;padding:12px;background:var(--bg-primary);border-radius:6px;">' +
         '<div style="font-size:0.8rem;color:var(--text-muted);">上升星座</div>' +
-        '<div style="font-size:1.2rem;color:var(--accent-gold);font-weight:600;">' + data.rising + '</div></div></div>' +
-        '<p style="text-align:center;color:var(--text-muted);font-size:0.85rem;margin-top:16px;">完整星盘分析功能内测中...</p></div>';
+        '<div style="font-size:1.2rem;color:var(--accent-gold);font-weight:600;">' + data.rising + '</div>' +
+        '<div style="font-size:0.75rem;color:var(--text-muted);">' + (data.risingDegree || '') + '°</div></div></div>' +
+        '<div id="chartInterpretation" style="margin-top:16px;padding:16px;background:var(--bg-primary);border-radius:8px;border-left:3px solid var(--accent-purple);">' +
+        '<p style="color:var(--text-muted);font-size:0.9rem;line-height:1.6;">' + (data.interpretation || '正在生成命盘解读...') + '</p></div>' +
+        '<p style="text-align:center;color:var(--text-muted);font-size:0.8rem;margin-top:12px;">天文数据基于出生时间计算 · AI 解读综合各流派技法</p></div>';
     }).catch(function() {
       resultDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);">获取失败，请稍后重试</div>';
     });
