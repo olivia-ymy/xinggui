@@ -603,7 +603,7 @@ function renderChat() {
       body: JSON.stringify({
         model: 'MiniMax-M2.7-highspeed',
         messages: conversationHistory.concat([{ role: 'user', content: text }]),
-        max_tokens: 2000,
+        max_tokens: 3500,
         temperature: 0.7
       })
     }).then(function(res) {
@@ -612,7 +612,7 @@ function renderChat() {
       return res.json();
     }).then(function(data) {
       if (done) return;
-      done = true;
+      var finishReason = data.choices && data.choices[0] && data.choices[0].finish_reason;
       var reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
       if (reply) {
         conversationHistory.push({ role: 'user', content: text });
@@ -620,6 +620,34 @@ function renderChat() {
         var thinkEl = document.getElementById('thinking');
         if (thinkEl) thinkEl.remove();
         addMsg('master', reply);
+        if (finishReason === 'length') {
+          // Show "continue" prompt
+          var continueDiv = document.createElement('div');
+          continueDiv.style.cssText = 'text-align:center;margin-top:8px;';
+          continueDiv.innerHTML = '<button class="btn btn-ghost" id="fateContinueBtn" style="font-size:0.85rem;">📜 内容较长，继续生成 ↓</button>';
+          document.getElementById('fateMsgs').appendChild(continueDiv);
+          document.getElementById('fateContinueBtn').addEventListener('click', function() {
+            continueDiv.remove();
+            var lastReply = conversationHistory[conversationHistory.length - 1].content;
+            fetch('https://model.imfan.top/v1/chat/completions', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer sk-6gpgNC8L2b2GFebjIeKqnDo5j4zKtWa3Jylv5Pm59GLRApkU' },
+              body: JSON.stringify({ model: 'MiniMax-M2.7-highspeed', messages: conversationHistory.concat([{ role: 'user', content: '请继续上一条回复的未尽之处。' }]), max_tokens: 3500, temperature: 0.7 })
+            }).then(function(res) { return res.json(); }).then(function(data2) {
+              var more = data2.choices && data2.choices[0] && data2.choices[0].message && data2.choices[0].message.content;
+              if (more) {
+                conversationHistory[conversationHistory.length - 1].content += '\n\n' + more;
+                var lastMsg = document.querySelector('#fateMsgs > div:last-child');
+                if (lastMsg) {
+                  var rendered = lastMsg.innerHTML;
+                  try { if (typeof marked !== 'undefined') more = marked.parse(more); } catch(e) {}
+                  try { if (typeof DOMPurify !== 'undefined') more = DOMPurify.sanitize(more); } catch(e) {}
+                  lastMsg.innerHTML = rendered + more;
+                }
+              }
+            }).catch(function() {});
+          });
+        }
       } else {
         throw new Error('empty');
       }
@@ -683,7 +711,7 @@ function renderChat() {
     fetch('https://model.imfan.top/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer sk-6gpgNC8L2b2GFebjIeKqnDo5j4zKtWa3Jylv5Pm59GLRApkU' },
-      body: JSON.stringify({ model: 'MiniMax-M2.7-highspeed', messages: conversationHistory.concat([{ role: 'user', content: initText }]), max_tokens: 2000, temperature: 0.7 })
+      body: JSON.stringify({ model: 'MiniMax-M2.7-highspeed', messages: conversationHistory.concat([{ role: 'user', content: initText }]), max_tokens: 3500, temperature: 0.7 })
     }).then(function(res) { clearTimeout(timer); if (!res.ok) throw new Error('err'); return res.json(); })
       .then(function(data) {
         if (done) return;
