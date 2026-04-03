@@ -78,15 +78,92 @@ function renderHome() {
   });
 }
 
-// ==================== PAGES (stubs) ====================
+// ==================== PAGES ====================
 function renderChart() {
   var app = document.getElementById('app');
-  app.innerHTML = '<div class="container page-enter"><section class="section-title"><h2>星盘分析</h2><p>输入出生信息，探索你的宇宙密码</p></section><div class="card" style="text-align:center;padding:60px;"><p style="color:var(--text-muted);">星盘分析功能内测中...</p></div></div>';
+  app.innerHTML = '<div class="container page-enter">' +
+    '<section class="section-title"><h2>星盘分析</h2><p>输入出生信息，探索你的宇宙密码</p></section>' +
+    '<div class="card" style="max-width:500px;margin:0 auto;">' +
+    '<div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid rgba(139,92,246,0.1);">' +
+    '<span style="font-size:2rem;">🔮</span><div><div style="color:var(--accent-purple);font-weight:600;">星盘分析</div><div style="color:var(--text-muted);font-size:0.85rem;">太阳星座 · 月亮星座 · 上升星座</div></div></div>' +
+    '<form id="chartForm" style="display:flex;flex-direction:column;gap:16px;">' +
+    '<div><label class="form-label">出生日期</label><input type="date" class="form-input" id="cDate" required></div>' +
+    '<div><label class="form-label">出生时间</label><input type="time" class="form-input" id="cTime" required></div>' +
+    '<div><label class="form-label">出生城市</label><input type="text" class="form-input" id="cCity" placeholder="例如：北京、上海" required></div>' +
+    '<button type="submit" class="btn btn-primary" style="width:100%;">✧ 开始分析</button></form>' +
+    '<div id="chartResult" style="margin-top:20px;"></div></div></div>';
+
+  document.getElementById('chartForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var date = document.getElementById('cDate').value;
+    var time = document.getElementById('cTime').value;
+    var city = document.getElementById('cCity').value;
+    var resultDiv = document.getElementById('chartResult');
+    resultDiv.innerHTML = '<div style="text-align:center;padding:20px;"><p style="color:var(--text-muted);">正在为您排盘...</p></div>';
+
+    API.getNatalChart(date, time, city).then(function(data) {
+      resultDiv.innerHTML = '<div style="margin-top:16px;padding:16px;background:var(--bg-tertiary);border-radius:8px;">' +
+        '<h4 style="color:var(--accent-purple);margin-bottom:12px;text-align:center;">您的命盘</h4>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
+        '<div style="text-align:center;padding:12px;background:var(--bg-primary);border-radius:6px;">' +
+        '<div style="font-size:0.8rem;color:var(--text-muted);">太阳星座</div>' +
+        '<div style="font-size:1.2rem;color:var(--accent-gold);font-weight:600;">' + data.sun + '</div></div>' +
+        '<div style="text-align:center;padding:12px;background:var(--bg-primary);border-radius:6px;">' +
+        '<div style="font-size:0.8rem;color:var(--text-muted);">月亮星座</div>' +
+        '<div style="font-size:1.2rem;color:var(--accent-gold);font-weight:600;">' + data.moon + '</div></div>' +
+        '<div style="text-align:center;padding:12px;background:var(--bg-primary);border-radius:6px;">' +
+        '<div style="font-size:0.8rem;color:var(--text-muted);">上升星座</div>' +
+        '<div style="font-size:1.2rem;color:var(--accent-gold);font-weight:600;">' + data.rising + '</div></div></div>' +
+        '<p style="text-align:center;color:var(--text-muted);font-size:0.85rem;margin-top:16px;">完整星盘分析功能内测中...</p></div>';
+    }).catch(function() {
+      resultDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);">获取失败，请稍后重试</div>';
+    });
+  });
 }
 
 function renderTarot() {
   var app = document.getElementById('app');
-  app.innerHTML = '<div class="container page-enter"><section class="section-title"><h2>塔罗占卜</h2><p>让牌卡指引你的困惑</p></section><div class="card" style="text-align:center;padding:60px;"><p style="color:var(--text-muted);">塔罗占卜功能内测中...</p></div></div>';
+  app.innerHTML = '<div class="container page-enter">' +
+    '<section class="section-title"><h2>塔罗占卜</h2><p>让牌卡指引你的困惑</p></section>' +
+    '<div class="card" style="max-width:500px;margin:0 auto;text-align:center;">' +
+    '<div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid rgba(139,92,246,0.1);">' +
+    '<span style="font-size:2rem;">🃏</span><div style="text-align:left;"><div style="color:var(--accent-purple);font-weight:600;">塔罗牌阵</div><div style="color:var(--text-muted);font-size:0.85rem;">过去 · 现在 · 未来</div></div></div>' +
+    '<p style="color:var(--text-secondary);margin-bottom:20px;">默念您的问题，然后抽取三张牌</p>' +
+    '<textarea class="form-input" id="tarotQuestion" rows="2" placeholder="（可选）写下您的问题..." style="width:100%;margin-bottom:16px;resize:none;"></textarea>' +
+    '<button class="btn btn-primary" id="tarotDrawBtn" style="width:100%;margin-bottom:16px;">🃏 抽取三张牌</button>' +
+    '<div id="tarotResult" style="margin-top:20px;"></div></div></div>';
+
+  document.getElementById('tarotDrawBtn').addEventListener('click', function() {
+    var question = document.getElementById('tarotQuestion').value;
+    var btn = document.getElementById('tarotDrawBtn');
+    btn.disabled = true;
+    btn.textContent = '洗牌中...';
+
+    API.drawTarot('three').then(function(cards) {
+      var html = '<div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:16px;">';
+      cards.forEach(function(card, i) {
+        var meanings = card.isReversed ? '<div style="color:var(--danger);font-size:0.8rem;">逆位</div>' : '<div style="color:var(--accent-gold);font-size:0.8rem;">正位</div>';
+        html += '<div style="width:100px;">' +
+          '<div style="width:80px;height:120px;margin:0 auto;border-radius:8px;border:2px solid ' + (card.isReversed ? 'var(--danger)' : 'var(--accent-purple)') + ';' +
+          'display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--bg-tertiary);' +
+          (card.isReversed ? 'transform:rotate(180deg);' : '') + '">🂡</div>' +
+          '<div style="font-size:0.85rem;color:var(--text-primary);font-weight:600;margin-top:6px;">' + card.name + '</div>' +
+          '<div style="font-size:0.75rem;color:var(--text-muted);">' + card.position + '</div>' +
+          meanings + '</div>';
+      });
+      html += '</div>';
+      html += '<div style="margin-top:20px;text-align:left;padding:16px;background:var(--bg-tertiary);border-radius:8px;">';
+      cards.forEach(function(card, i) {
+        var meaning = card.isReversed ? card.reversed : card.upright;
+        html += '<div style="margin-bottom:12px;"><strong style="color:var(--accent-purple);">' + card.position + '：' + card.name + '</strong>' +
+          '<p style="color:var(--text-secondary);font-size:0.9rem;margin:4px 0 0;">' + meaning + '</p></div>';
+      });
+      html += '</div>';
+      document.getElementById('tarotResult').innerHTML = html;
+      btn.disabled = false;
+      btn.textContent = '🃏 再抽一次';
+    });
+  });
 }
 
 function renderCompatibility() {
@@ -94,25 +171,81 @@ function renderCompatibility() {
   var options = ZODIACS.map(function(z) {
     return '<option value="' + z.name + '">' + z.icon + ' ' + z.name + '</option>';
   }).join('');
-  app.innerHTML = '<div class="container page-enter"><section class="section-title"><h2>星座配对</h2><p>探索两个星座之间的化学反应</p></section>' +
-    '<div class="card"><div style="display:flex;gap:20px;justify-content:center;align-items:center;flex-wrap:wrap;">' +
-    '<select class="form-input form-select" id="compat1" style="width:150px;"><option value="">选择星座</option>' + options + '</select>' +
+  app.innerHTML = '<div class="container page-enter">' +
+    '<section class="section-title"><h2>星座配对</h2><p>探索两个星座之间的化学反应</p></section>' +
+    '<div class="card" style="max-width:500px;margin:0 auto;">' +
+    '<div style="display:flex;gap:16px;justify-content:center;align-items:center;flex-wrap:wrap;margin-bottom:20px;">' +
+    '<select class="form-input form-select" id="compat1" style="width:150px;"><option value="">选择第一个星座</option>' + options + '</select>' +
     '<span style="color:var(--accent-purple);font-size:1.5rem;">×</span>' +
-    '<select class="form-input form-select" id="compat2" style="width:150px;"><option value="">选择星座</option>' + options + '</select>' +
-    '</div><button class="btn btn-primary" id="compatBtn" style="margin-top:20px;width:100%;">✧ 查看配对结果</button>' +
+    '<select class="form-input form-select" id="compat2" style="width:150px;"><option value="">选择第二个星座</option>' + options + '</select>' +
+    '</div>' +
+    '<button class="btn btn-primary" id="compatBtn" style="width:100%;">✧ 查看配对结果</button>' +
     '<div id="compatResult" style="margin-top:20px;"></div></div></div>';
+
   document.getElementById('compatBtn').addEventListener('click', function() {
     var s1 = document.getElementById('compat1').value;
     var s2 = document.getElementById('compat2').value;
     if (!s1 || !s2) { alert('请选择两个星座'); return; }
-    document.getElementById('compatResult').innerHTML = '<div class="card"><p style="text-align:center;color:var(--text-muted);">配对功能内测中...</p></div>';
+    var resultDiv = document.getElementById('compatResult');
+    resultDiv.innerHTML = '<div style="text-align:center;padding:20px;"><p style="color:var(--text-muted);">正在分析...</p></div>';
+
+    API.getCompatibility(s1, s2).then(function(data) {
+      var scoreColor = data.score >= 80 ? 'var(--accent-gold)' : data.score >= 60 ? 'var(--accent-purple)' : 'var(--text-muted)';
+      resultDiv.innerHTML = '<div style="margin-top:16px;padding:16px;background:var(--bg-tertiary);border-radius:8px;">' +
+        '<div style="text-align:center;margin-bottom:16px;">' +
+        '<div style="font-size:3rem;">' + ZODIACS.find(function(z){return z.name===s1;}).icon + ' ' + ZODIACS.find(function(z){return z.name===s2;}).icon + '</div>' +
+        '<div style="font-size:1.2rem;color:var(--accent-purple);font-weight:600;">' + s1 + ' × ' + s2 + '</div>' +
+        '<div style="font-size:2rem;color:' + scoreColor + ';font-weight:700;margin-top:4px;">' + data.score + '分</div></div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">' +
+        '<div style="text-align:center;padding:10px;background:var(--bg-primary);border-radius:6px;">' +
+        '<div style="font-size:0.75rem;color:var(--text-muted);">爱情</div><div style="color:var(--danger);font-weight:600;">' + data.love + '</div></div>' +
+        '<div style="text-align:center;padding:10px;background:var(--bg-primary);border-radius:6px;">' +
+        '<div style="font-size:0.75rem;color:var(--text-muted);">沟通</div><div style="color:var(--accent-cyan);font-weight:600;">' + data.communication + '</div></div>' +
+        '<div style="text-align:center;padding:10px;background:var(--bg-primary);border-radius:6px;">' +
+        '<div style="font-size:0.75rem;color:var(--text-muted);">信任</div><div style="color:var(--accent-gold);font-weight:600;">' + data.trust + '</div></div></div>' +
+        '<div style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;">' +
+        '<p style="margin-bottom:8px;"><strong style="color:var(--accent-gold);">优势：</strong>' + data.strengths + '</p>' +
+        '<p><strong style="color:var(--danger);">注意：</strong>' + data.weaknesses + '</p></div></div>';
+    });
   });
 }
 
 function renderFortune() {
   var app = document.getElementById('app');
-  app.innerHTML = '<div class="container page-enter"><section class="section-title"><h2>求签问卜</h2><p>心诚则灵，点击签筒求得一签</p></section>' +
-    '<div class="card" style="text-align:center;padding:60px;"><p style="color:var(--text-muted);">求签功能内测中...</p></div></div>';
+  app.innerHTML = '<div class="container page-enter">' +
+    '<section class="section-title"><h2>求签问卜</h2><p>心诚则灵，点击签筒求得一签</p></section>' +
+    '<div class="card" style="max-width:500px;margin:0 auto;text-align:center;">' +
+    '<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid rgba(139,92,246,0.1);">' +
+    '<span style="font-size:2rem;">🏺</span><div style="text-align:left;"><div style="color:var(--accent-purple);font-weight:600;">求签问卜</div><div style="color:var(--text-muted);font-size:0.85rem;">摇筒得签，心诚则灵</div></div></div>' +
+    '<p style="color:var(--text-secondary);margin-bottom:20px;">心中默念您的问题，然后点击下方签筒</p>' +
+    '<textarea class="form-input" id="fortuneQuestion" rows="2" placeholder="（可选）写下您想问的事情..." style="width:100%;margin-bottom:16px;resize:none;"></textarea>' +
+    '<button class="btn btn-primary" id="fortuneDrawBtn" style="width:100%;margin-bottom:16px;">🏺 摇筒求签</button>' +
+    '<div id="fortuneResult" style="margin-top:20px;"></div></div></div>';
+
+  document.getElementById('fortuneDrawBtn').addEventListener('click', function() {
+    var question = document.getElementById('fortuneQuestion').value;
+    var btn = document.getElementById('fortuneDrawBtn');
+    btn.disabled = true;
+    btn.textContent = '求签中...';
+    document.getElementById('fortuneResult').innerHTML = '<div style="text-align:center;padding:20px;"><p style="color:var(--text-muted);">签筒摇晃中...</p></div>';
+
+    API.drawFortune(question).then(function(data) {
+      var levelColors = { '大吉': 'var(--accent-gold)', '中吉': 'var(--accent-purple)', '小吉': 'var(--accent-cyan)', '吉': 'var(--accent-cyan)', '中平': 'var(--text-muted)', '下平': 'var(--text-muted)', '下下': 'var(--danger)' };
+      var levelColor = levelColors[data.level] || 'var(--text-muted)';
+      document.getElementById('fortuneResult').innerHTML = '<div style="margin-top:16px;padding:20px;background:var(--bg-tertiary);border-radius:8px;">' +
+        '<div style="font-size:4rem;margin-bottom:12px;">' + (data.level.indexOf('吉') !== -1 ? '✨' : data.level === '下下' ? '⚠️' : '🔮') + '</div>' +
+        '<div style="font-size:1.5rem;color:' + levelColor + ';font-weight:700;margin-bottom:8px;">' + data.level + '</div>' +
+        '<div style="padding:12px;background:var(--bg-primary);border-radius:6px;margin:12px 0;">' +
+        '<p style="color:var(--text-primary);line-height:1.8;font-size:1rem;">' + data.text + '</p></div>' +
+        '<p style="color:var(--text-muted);font-size:0.85rem;">心诚则灵，签文仅供参考</p></div>';
+      btn.disabled = false;
+      btn.textContent = '🏺 再求一签';
+    }).catch(function() {
+      document.getElementById('fortuneResult').innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);">求签失败，请稍后重试</div>';
+      btn.disabled = false;
+      btn.textContent = '🏺 摇筒求签';
+    });
+  });
 }
 
 // ==================== FATE ====================
