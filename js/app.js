@@ -96,8 +96,8 @@ function renderHome() {
           '<span style="padding:4px 10px;background:var(--bg-tertiary);border-radius:20px;color:var(--text-secondary);">幸运方向：<strong style="color:var(--accent-purple);">' + data.luckyDirection + '</strong></span></div>' +
           '<div style="padding:12px;background:var(--bg-tertiary);border-radius:8px;text-align:center;">' +
           '<p style="color:var(--text-secondary);line-height:1.6;font-size:0.9rem;">' + data.tip + '</p></div></div>';
-      }).catch(function() {
-        resultDiv.innerHTML = '<div class="card" style="padding:30px;text-align:center;"><p style="color:var(--danger);">读取失败，请稍后重试</p></div>';
+      }).catch(function(err) {
+        resultDiv.innerHTML = '<div class="card" style="padding:30px;text-align:center;"><p style="color:var(--danger);">⚠️ 服务响应超时，请检查网络后重试</p><p style="color:var(--text-muted);font-size:0.85rem;margin-top:8px;">（或稍等几秒后重试，Worker 冷启动需要一点时间）</p></div>';
       });
     });
   });
@@ -146,7 +146,7 @@ function renderChart() {
         '<p style="color:var(--text-muted);font-size:0.9rem;line-height:1.6;">' + (data.interpretation || '正在生成命盘解读...') + '</p></div>' +
         '<p style="text-align:center;color:var(--text-muted);font-size:0.8rem;margin-top:12px;">天文数据基于出生时间计算 · AI 解读综合各流派技法</p></div>';
     }).catch(function() {
-      resultDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);">获取失败，请稍后重试</div>';
+      resultDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);">⚠️ 获取失败，请稍后重试（首次需等待 Worker 冷启动）</div>';
     });
   });
 }
@@ -192,6 +192,10 @@ function renderTarot() {
       document.getElementById('tarotResult').innerHTML = html;
       btn.disabled = false;
       btn.textContent = '🃏 再抽一次';
+    }).catch(function() {
+      document.getElementById('tarotResult').innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);">⚠️ 获取失败，请稍后重试</div>';
+      btn.disabled = false;
+      btn.textContent = '🃏 抽取三张牌';
     });
   });
 }
@@ -236,6 +240,8 @@ function renderCompatibility() {
         '<div style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;">' +
         '<p style="margin-bottom:8px;"><strong style="color:var(--accent-gold);">优势：</strong>' + data.strengths + '</p>' +
         '<p><strong style="color:var(--danger);">注意：</strong>' + data.weaknesses + '</p></div></div>';
+    }).catch(function() {
+      resultDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);">⚠️ 获取失败，请稍后重试</div>';
     });
   });
 }
