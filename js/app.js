@@ -102,7 +102,8 @@ function renderHome() {
           '<div style="font-size:2rem;margin-bottom:4px;">' + ZODIACS.find(function(z){return z.name===zodiac;}).icon + '</div>' +
           '<h3 style="color:var(--accent-purple);">' + zodiac + ' 今日运势</h3>' +
           '<div style="font-size:1.2rem;color:' + scoreColor + ';margin-top:4px;">' + stars + '</div>' +
-          '<div style="font-size:0.85rem;color:var(--text-muted);margin-top:4px;">综合指数 ' + data.score + '/5</div></div>' +
+          '<div style="font-size:0.85rem;color:var(--text-muted);margin-top:4px;">综合指数 ' + data.score + '/5</div>' +
+          (data.rating ? '<div style="margin-top:12px;padding:10px 16px;background:rgba(139,92,246,0.08);border-radius:8px;border-left:3px solid var(--accent-purple);"><span style="color:var(--accent-purple);font-weight:600;">✦ ' + data.rating + '</span></div>' : '') + '</div>' +
           '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">' +
           '<div style="text-align:center;padding:10px;background:var(--bg-tertiary);border-radius:6px;">' +
           '<div style="font-size:0.75rem;color:var(--text-muted);">爱情</div>' +
@@ -113,12 +114,18 @@ function renderHome() {
           '<div style="text-align:center;padding:10px;background:var(--bg-tertiary);border-radius:6px;">' +
           '<div style="font-size:0.75rem;color:var(--text-muted);">财运</div>' +
           '<div style="color:var(--accent-gold);font-weight:600;">' + data.wealth + '%</div></div></div>' +
+          (data.warning && data.warning.indexOf('无特殊预警') === -1 ? '<div style="margin-bottom:12px;padding:10px 12px;background:rgba(239,68,68,0.08);border-radius:6px;border-left:3px solid var(--danger);"><span style="color:var(--danger);font-size:0.85rem;">⚠️ ' + data.warning + '</span></div>' : '') +
           '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;font-size:0.85rem;">' +
           '<span style="padding:4px 10px;background:var(--bg-tertiary);border-radius:20px;color:var(--text-secondary);">幸运色：<strong style="color:var(--accent-gold);">' + data.luckyColor + '</strong></span>' +
           '<span style="padding:4px 10px;background:var(--bg-tertiary);border-radius:20px;color:var(--text-secondary);">幸运数：<strong style="color:var(--accent-cyan);">' + data.luckyNumber + '</strong></span>' +
           '<span style="padding:4px 10px;background:var(--bg-tertiary);border-radius:20px;color:var(--text-secondary);">幸运方向：<strong style="color:var(--accent-purple);">' + data.luckyDirection + '</strong></span></div>' +
-          '<div style="padding:12px;background:var(--bg-tertiary);border-radius:8px;text-align:center;">' +
-          '<p style="color:var(--text-secondary);line-height:1.6;font-size:0.9rem;">' + data.tip + '</p></div>' +
+          (data.action ? '<div style="margin-bottom:12px;padding:10px 12px;background:rgba(34,211,238,0.08);border-radius:6px;border-left:3px solid var(--accent-cyan);"><span style="color:var(--accent-cyan);font-size:0.85rem;">👉 今天值得做：' + data.action + '</span></div>' : '') +
+          (data.loveTip || data.careerTip || data.wealthTip ? '<div style="padding:12px;background:var(--bg-tertiary);border-radius:8px;text-align:left;">' +
+          (data.loveTip ? '<div style="margin-bottom:8px;"><span style="color:var(--danger);font-weight:600;">♡ 爱情：</span><span style="color:var(--text-secondary);font-size:0.9rem;">' + data.loveTip + '</span></div>' : '') +
+          (data.careerTip ? '<div style="margin-bottom:8px;"><span style="color:var(--accent-cyan);font-weight:600;">💼 事业：</span><span style="color:var(--text-secondary);font-size:0.9rem;">' + data.careerTip + '</span></div>' : '') +
+          (data.wealthTip ? '<div><span style="color:var(--accent-gold);font-weight:600;">💰 财运：</span><span style="color:var(--text-secondary);font-size:0.9rem;">' + data.wealthTip + '</span></div>' : '') +
+          '</div>' : '<div style="padding:12px;background:var(--bg-tertiary);border-radius:8px;text-align:center;">' +
+          '<p style="color:var(--text-secondary);line-height:1.6;font-size:0.9rem;">' + data.tip + '</p></div>') +
           astroHtml + '</div>';
       }).catch(function(err) {
         // Fallback: show real astro data directly without LLM
@@ -207,7 +214,7 @@ function renderChart() {
     API.getNatalChart(date, time, city).then(function(data) {
       resultDiv.innerHTML = '<div style="margin-top:16px;padding:16px;background:var(--bg-tertiary);border-radius:8px;">' +
         '<h4 style="color:var(--accent-purple);margin-bottom:12px;text-align:center;">您的命盘</h4>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">' +
         '<div style="text-align:center;padding:12px;background:var(--bg-primary);border-radius:6px;">' +
         '<div style="font-size:0.8rem;color:var(--text-muted);">太阳星座</div>' +
         '<div style="font-size:1.2rem;color:var(--accent-gold);font-weight:600;">' + data.sun + '</div>' +
@@ -220,8 +227,14 @@ function renderChart() {
         '<div style="font-size:0.8rem;color:var(--text-muted);">上升星座</div>' +
         '<div style="font-size:1.2rem;color:var(--accent-gold);font-weight:600;">' + data.rising + '</div>' +
         '<div style="font-size:0.75rem;color:var(--text-muted);">' + (data.risingDegree || '') + '°</div></div></div>' +
-        '<div id="chartInterpretation" style="margin-top:16px;padding:16px;background:var(--bg-primary);border-radius:8px;border-left:3px solid var(--accent-purple);">' +
-        '<p style="color:var(--text-muted);font-size:0.9rem;line-height:1.6;">' + (data.interpretation || '正在生成命盘解读...') + '</p></div>' +
+        (data.interpretation ? '<div id="chartInterpretation" style="margin-top:16px;padding:16px;background:var(--bg-primary);border-radius:8px;border-left:3px solid var(--accent-purple);">' +
+        (data.personality ? '<div style="margin-bottom:12px;"><span style="color:var(--accent-cyan);font-weight:600;">✦ 性格：</span><span style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6;">' + data.personality + '</span></div>' : '') +
+        (data.career ? '<div style="margin-bottom:12px;"><span style="color:var(--accent-gold);font-weight:600;">💼 事业：</span><span style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6;">' + data.career + '</span></div>' : '') +
+        (data.love ? '<div style="margin-bottom:12px;"><span style="color:var(--danger);font-weight:600;">♡ 感情：</span><span style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6;">' + data.love + '</span></div>' : '') +
+        (data.warning ? '<div style="margin-bottom:12px;padding:10px 12px;background:rgba(239,68,68,0.06);border-radius:6px;border-left:3px solid var(--danger);"><span style="color:var(--danger);font-size:0.85rem;">⚠️ ' + data.warning + '</span></div>' : '') +
+        (data.advice ? '<div style="margin-top:8px;padding:10px 12px;background:rgba(34,211,238,0.06);border-radius:6px;border-left:3px solid var(--accent-cyan);"><span style="color:var(--accent-cyan);font-size:0.85rem;">👉 ' + data.advice + '</span></div>' : '') +
+        '</div>' : '<div id="chartInterpretation" style="margin-top:16px;padding:16px;background:var(--bg-primary);border-radius:8px;border-left:3px solid var(--accent-purple);">' +
+        '<p style="color:var(--text-muted);font-size:0.9rem;line-height:1.6;">' + (data.interpretation || '正在生成命盘解读...') + '</p></div>') +
         '<p style="text-align:center;color:var(--text-muted);font-size:0.8rem;margin-top:12px;">天文数据基于出生时间计算 · AI 解读综合各流派技法</p></div>';
     }).catch(function() {
       resultDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);">⚠️ 获取失败，请稍后重试（首次需等待 Worker 冷启动）</div>';
@@ -251,10 +264,10 @@ function renderTarot() {
       var html = '<div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:16px;">';
       cards.forEach(function(card, i) {
         var meanings = card.isReversed ? '<div style="color:var(--danger);font-size:0.8rem;">逆位</div>' : '<div style="color:var(--accent-gold);font-size:0.8rem;">正位</div>';
-        html += '<div style="width:100px;">' +
+        html += '<div style="width:100px;text-align:center;">' +
           '<div style="width:80px;height:120px;margin:0 auto;border-radius:8px;border:2px solid ' + (card.isReversed ? 'var(--danger)' : 'var(--accent-purple)') + ';' +
-          'display:flex;align-items:center;justify-content:center;font-size:3rem;background:var(--bg-tertiary);' +
-          (card.isReversed ? 'transform:rotate(180deg);' : '') + '">🂡</div>' +
+          'display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:700;color:var(--accent-purple);background:var(--bg-tertiary);' +
+          (card.isReversed ? 'transform:rotate(180deg);' : '') + '">' + (card.name.charAt(0)) + '</div>' +
           '<div style="font-size:0.85rem;color:var(--text-primary);font-weight:600;margin-top:6px;">' + card.name + '</div>' +
           '<div style="font-size:0.75rem;color:var(--text-muted);">' + card.position + '</div>' +
           meanings + '</div>';
@@ -303,6 +316,7 @@ function renderCompatibility() {
 
     API.getCompatibility(s1, s2).then(function(data) {
       var scoreColor = data.score >= 80 ? 'var(--accent-gold)' : data.score >= 60 ? 'var(--accent-purple)' : 'var(--text-muted)';
+      var whoBetter = data.whoBetter || '';
       resultDiv.innerHTML = '<div style="margin-top:16px;padding:16px;background:var(--bg-tertiary);border-radius:8px;">' +
         '<div style="text-align:center;margin-bottom:16px;">' +
         '<div style="font-size:3rem;">' + ZODIACS.find(function(z){return z.name===s1;}).icon + ' ' + ZODIACS.find(function(z){return z.name===s2;}).icon + '</div>' +
@@ -315,9 +329,13 @@ function renderCompatibility() {
         '<div style="font-size:0.75rem;color:var(--text-muted);">沟通</div><div style="color:var(--accent-cyan);font-weight:600;">' + data.communication + '</div></div>' +
         '<div style="text-align:center;padding:10px;background:var(--bg-primary);border-radius:6px;">' +
         '<div style="font-size:0.75rem;color:var(--text-muted);">信任</div><div style="color:var(--accent-gold);font-weight:600;">' + data.trust + '</div></div></div>' +
-        '<div style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;">' +
-        '<p style="margin-bottom:8px;"><strong style="color:var(--accent-gold);">优势：</strong>' + data.strengths + '</p>' +
-        '<p><strong style="color:var(--danger);">注意：</strong>' + data.weaknesses + '</p></div></div>';
+        '<div style="margin-bottom:12px;padding:10px 12px;background:rgba(34,211,238,0.06);border-radius:6px;border-left:3px solid var(--accent-cyan);">' +
+        '<span style="color:var(--accent-cyan);font-size:0.85rem;">✦ 关系主动权：' + whoBetter + '</span></div>' +
+        '<div style="font-size:0.9rem;color:var(--text-secondary);line-height:1.6;margin-bottom:10px;">' +
+        '<p style="margin-bottom:8px;"><strong style="color:var(--accent-gold);">✧ 优势：</strong>' + (data.strengths || '') + '</p>' +
+        '<p style="margin-bottom:8px;"><strong style="color:var(--danger);">✧ 注意：</strong>' + (data.weaknesses || '') + '</p></div>' +
+        (data.danger ? '<div style="margin-top:10px;padding:10px 12px;background:rgba(239,68,68,0.06);border-radius:6px;border-left:3px solid var(--danger);">' +
+        '<span style="color:var(--danger);font-size:0.85rem;">⚠️ 最大风险：' + data.danger + '</span></div>' : '') + '</div>';
     }).catch(function() {
       resultDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);">⚠️ 获取失败，请稍后重试</div>';
     });
@@ -346,12 +364,15 @@ function renderFortune() {
     API.drawFortune(question).then(function(data) {
       var levelColors = { '大吉': 'var(--accent-gold)', '中吉': 'var(--accent-purple)', '小吉': 'var(--accent-cyan)', '吉': 'var(--accent-cyan)', '中平': 'var(--text-muted)', '下平': 'var(--text-muted)', '下下': 'var(--danger)' };
       var levelColor = levelColors[data.level] || 'var(--text-muted)';
+      var isGood = data.level.indexOf('吉') !== -1;
       document.getElementById('fortuneResult').innerHTML = '<div style="margin-top:16px;padding:20px;background:var(--bg-tertiary);border-radius:8px;">' +
-        '<div style="font-size:4rem;margin-bottom:12px;">' + (data.level.indexOf('吉') !== -1 ? '✨' : data.level === '下下' ? '⚠️' : '🔮') + '</div>' +
+        '<div style="text-align:center;margin-bottom:16px;">' +
+        '<div style="font-size:4rem;margin-bottom:12px;">' + (isGood ? '✨' : data.level === '下下' ? '⚠️' : '🔮') + '</div>' +
         '<div style="font-size:1.5rem;color:' + levelColor + ';font-weight:700;margin-bottom:8px;">' + data.level + '</div>' +
-        '<div style="padding:12px;background:var(--bg-primary);border-radius:6px;margin:12px 0;">' +
-        '<p style="color:var(--text-primary);line-height:1.8;font-size:1rem;">' + data.text + '</p></div>' +
-        '<p style="color:var(--text-muted);font-size:0.85rem;">心诚则灵，签文仅供参考</p></div>';
+        '<div style="padding:16px;background:var(--bg-primary);border-radius:8px;margin:12px 0;font-size:1.1rem;color:var(--text-primary);font-style:italic;text-align:center;line-height:1.8;">' + (data.text || data.poem || '签文读取中...') + '</div></div>' +
+        (data.interpretation ? '<div style="margin-bottom:12px;padding:12px;background:rgba(139,92,246,0.06);border-radius:6px;border-left:3px solid var(--accent-purple);"><span style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6;">📝 ' + data.interpretation + '</span></div>' : '') +
+        (data.advice ? '<div style="margin-bottom:12px;padding:12px;background:rgba(34,211,238,0.06);border-radius:6px;border-left:3px solid var(--accent-cyan);"><span style="color:var(--accent-cyan);font-size:0.9rem;">👉 ' + data.advice + '</span></div>' : '') +
+        '<p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">心诚则灵，签文仅供参考</p></div>';
       btn.disabled = false;
       btn.textContent = '🏺 再求一签';
     }).catch(function() {
