@@ -594,7 +594,7 @@ function renderChat() {
       }
     }, 25000);
 
-    fetch('https://model.imfan.top/v1/chat/completions', {
+    fetch('https://api.oyummy.top/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -629,7 +629,7 @@ function renderChat() {
           document.getElementById('fateContinueBtn').addEventListener('click', function() {
             continueDiv.remove();
             var lastReply = conversationHistory[conversationHistory.length - 1].content;
-            fetch('https://model.imfan.top/v1/chat/completions', {
+            fetch('https://api.oyummy.top/v1/chat/completions', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer sk-6gpgNC8L2b2GFebjIeKqnDo5j4zKtWa3Jylv5Pm59GLRApkU' },
               body: JSON.stringify({ model: 'MiniMax-M2.7-highspeed', messages: conversationHistory.concat([{ role: 'user', content: '请继续上一条回复的未尽之处。' }]), max_tokens: 3500, temperature: 0.7 })
@@ -708,7 +708,7 @@ function renderChat() {
       if (!done) { done = true; var t = document.getElementById('fateThinking'); if (t) t.outerHTML = '<p style="color:var(--danger);">服务响应超时，请刷新页面重试。</p>'; input.disabled = false; btn.disabled = false; }
     }, 30000);
 
-    fetch('https://model.imfan.top/v1/chat/completions', {
+    fetch('https://api.oyummy.top/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer sk-6gpgNC8L2b2GFebjIeKqnDo5j4zKtWa3Jylv5Pm59GLRApkU' },
       body: JSON.stringify({ model: 'MiniMax-M2.7-highspeed', messages: conversationHistory.concat([{ role: 'user', content: initText }]), max_tokens: 3500, temperature: 0.7 })
