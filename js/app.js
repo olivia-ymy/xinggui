@@ -810,3 +810,4 @@ function addChatStyles() {
 
 // Init
 initRouter();
+
