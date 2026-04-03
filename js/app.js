@@ -121,7 +121,61 @@ function renderHome() {
           '<p style="color:var(--text-secondary);line-height:1.6;font-size:0.9rem;">' + data.tip + '</p></div>' +
           astroHtml + '</div>';
       }).catch(function(err) {
-        resultDiv.innerHTML = '<div class="card" style="padding:30px;text-align:center;"><p style="color:var(--danger);">⚠️ 服务响应超时，请检查网络后重试</p><p style="color:var(--text-muted);font-size:0.85rem;margin-top:8px;">（或稍等几秒后重试，Worker 冷启动需要一点时间）</p></div>';
+        // Fallback: show real astro data directly without LLM
+        var today = new Date().toISOString().split('T')[0];
+        var parts = today.split('-');
+        var ctx = API.getHoroscopeContext(zodiac, today);
+        var planetList = ctx.planetsInSign.map(function(p) { return p.name + '(' + p.sign.name + p.sign.degree + '°)'; });
+        var aspectList = ctx.aspects.map(function(a) { return a.p1 + ' ' + a.symbol + ' ' + a.p2; });
+
+        // Derive basic scores from real planetary positions
+        var hasMars = ctx.planetsInSign.some(function(p){ return p.name === '火星'; });
+        var hasVenus = ctx.planetsInSign.some(function(p){ return p.name === '金星'; });
+        var hasJupiter = ctx.planetsInSign.some(function(p){ return p.name === '木星'; });
+        var hasSaturn = ctx.planetsInSign.some(function(p){ return p.name === '土星'; });
+        var love = hasVenus ? Math.min(95, 65 + Math.round(Math.random()*20)) : 60 + Math.round(Math.random()*15);
+        var career = hasMars ? Math.min(95, 65 + Math.round(Math.random()*20)) : 58 + Math.round(Math.random()*15);
+        var wealth = hasJupiter ? Math.min(95, 65 + Math.round(Math.random()*20)) : hasSaturn ? 55 + Math.round(Math.random()*15) : 60 + Math.round(Math.random()*15);
+        var score = Math.min(5, Math.max(3, (love + career + wealth) / 300 * 5));
+        var stars = '★★★★★'.substring(5 - Math.round(score));
+
+        var colors = ['红色','橙色','黄色','绿色','蓝色','紫色','白色','金色'];
+        var color = colors[Math.floor(Math.random() * colors.length)];
+        var num = Math.floor(Math.random() * 9) + 1;
+        var dirs = ['东方','西方','南方','北方','东南','西南','东北','西北'];
+        var dir = dirs[Math.floor(Math.random() * dirs.length)];
+
+        var tips = [];
+        if (hasMars) tips.push('火星行运，带来行动力和冲劲，但注意避免冲动行事。');
+        if (hasVenus) tips.push('金星眷顾，人际关系和谐，利于感情和艺术创作。');
+        if (hasJupiter) tips.push('木星加持，运势上扬，适合扩展、学习和旅行。');
+        if (hasSaturn) tips.push('土星考验，带来压力和挑战，但也是成长契机。');
+        if (tips.length === 0) tips.push('今日星象平稳，顺势而为，稳中求进。');
+
+        var tipText = tips.join(' ');
+
+        resultDiv.innerHTML = '<div class="card" style="padding:24px;">' +
+          '<div style="text-align:center;margin-bottom:12px;">' +
+          '<div style="font-size:2rem;margin-bottom:4px;">' + ZODIACS.find(function(z){return z.name===zodiac;}).icon + '</div>' +
+          '<h3 style="color:var(--accent-purple);">' + zodiac + ' 今日运势</h3>' +
+          '<div style="font-size:1.2rem;color:var(--accent-purple);margin-top:4px;">' + stars + '</div>' +
+          '<div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">（离线模式 · 实时天文数据）</div></div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">' +
+          '<div style="text-align:center;padding:10px;background:var(--bg-tertiary);border-radius:6px;"><div style="font-size:0.75rem;color:var(--text-muted);">爱情</div><div style="color:var(--danger);font-weight:600;">' + love + '%</div></div>' +
+          '<div style="text-align:center;padding:10px;background:var(--bg-tertiary);border-radius:6px;"><div style="font-size:0.75rem;color:var(--text-muted);">事业</div><div style="color:var(--accent-cyan);font-weight:600;">' + career + '%</div></div>' +
+          '<div style="text-align:center;padding:10px;background:var(--bg-tertiary);border-radius:6px;"><div style="font-size:0.75rem;color:var(--text-muted);">财运</div><div style="color:var(--accent-gold);font-weight:600;">' + wealth + '%</div></div></div>' +
+          '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;font-size:0.85rem;">' +
+          '<span style="padding:4px 10px;background:var(--bg-tertiary);border-radius:20px;">幸运色：<strong style="color:var(--accent-gold);">' + color + '</strong></span>' +
+          '<span style="padding:4px 10px;background:var(--bg-tertiary);border-radius:20px;">幸运数：<strong style="color:var(--accent-cyan);">' + num + '</strong></span>' +
+          '<span style="padding:4px 10px;background:var(--bg-tertiary);border-radius:20px;">幸运方向：<strong style="color:var(--accent-purple);">' + dir + '</strong></span></div>' +
+          '<div style="padding:12px;background:var(--bg-tertiary);border-radius:8px;text-align:center;">' +
+          '<p style="color:var(--text-secondary);line-height:1.6;font-size:0.9rem;">' + tipText + '</p></div>' +
+          '<div style="margin-top:16px;padding:12px;background:rgba(139,92,246,0.05);border-radius:8px;font-size:0.8rem;color:var(--text-muted);line-height:1.8;">' +
+          '<div style="margin-bottom:6px;color:var(--accent-cyan);font-weight:600;">✧ 今日真实星象</div>' +
+          '<div>太阳所在：' + ctx.sunSign + ' &nbsp;|&nbsp; 月亮所在：' + ctx.moonSign + '</div>' +
+          (planetList.length > 0 ? '<div>进入' + zodiac + '的行星：' + planetList.join('、') + '</div>' : '<div>今日无主要行星进入' + zodiac + '。</div>') +
+          (aspectList.length > 0 ? '<div>相关相位：' + aspectList.join(' &nbsp;') + '</div>' : '') +
+          '</div></div>';
       });
     });
   });
