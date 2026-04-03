@@ -97,9 +97,12 @@ function renderHome() {
           astroHtml += '</div>';
         }
 
-        var todayStr = data._context && data._context.date ? data._context.date.replace(/-/g, '年').replace(/T.*/, '日') : new Date().toLocaleDateString('zh-CN');
+        var d = new Date();
+        var monthStr = d.getMonth() + 1;
+        var dayStr = d.getDate();
+        var todayStr = d.getFullYear() + '年' + (monthStr < 10 ? '0' : '') + monthStr + '月' + (dayStr < 10 ? '0' : '') + dayStr + '日';
         var weekDays = ['周日','周一','周二','周三','周四','周五','周六'];
-        var wd = weekDays[new Date().getDay()];
+        var wd = weekDays[d.getDay()];
         resultDiv.innerHTML = '<div class="card" style="padding:24px;">' +
           '<div style="text-align:center;margin-bottom:16px;">' +
           '<div style="font-size:2rem;margin-bottom:4px;">' + ZODIACS.find(function(z){return z.name===zodiac;}).icon + '</div>' +
