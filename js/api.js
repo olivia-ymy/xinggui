@@ -51,18 +51,20 @@ var API = {
   // Moon ecliptic longitude (degrees) - simplified but more accurate than random
   getMoonLongitude: function(jd) {
     var T = (jd - 2451545) / 36525;
-    var L0 = 218.3164477 + T * (481267.88123421 - 0.0015786 * T); // mean longitude
-    var l = 134.9633964 + T * (477198.8675055 + 0.0087414 * T);   // mean anomaly
-    var lp = 357.5291092 + T * (35999.0502909 - 0.0001466 * T);  // sun mean anomaly
+    // Sun's mean anomaly (for lunar perturbations)
+    var M = 357.52911 + T * (35999.05029 - 0.0001537 * T);
+    var L0 = 218.3164477 + T * (481267.88123421 - 0.0015786 * T); // moon's mean longitude
+    var l = 134.9633964 + T * (477198.8675055 + 0.0087414 * T);    // moon's mean anomaly
+    var lp = 357.5291092 + T * (35999.0502909 - 0.0001466 * T);   // sun's mean anomaly
     var F = 93.2720950 + T * (483202.0175233 - 0.0036539 * T);   // argument of latitude
 
     // Moon's equation of center
     var l_prime = L0 + (6.289 * Math.sin(l * Math.PI / 180));
-    // Some additional perturbations
+    // Additional perturbations
     l_prime += 1.274 * Math.sin((l - 2 * F) * Math.PI / 180);
     l_prime += 0.658 * Math.sin(2 * lp * Math.PI / 180);
-    l_prime -= 0.186 * Math.sin(M * Math.PI / 180); // M is sun's mean anomaly (global)
-    l_prime -= 0.114 * Math.sin(2 * F * Math.PI / 180);
+    l_prime -= 0.214 * Math.sin(2 * F * Math.PI / 180);
+    l_prime += 0.186 * Math.sin(M * Math.PI / 180);
 
     return this.mod360(l_prime);
   },
@@ -218,19 +220,26 @@ var API = {
 
   // ===================== HOROSCOPE =====================
 
+  // ===================== HOROSCOPE =====================
+
   getHoroscope: function(zodiac, date) {
+    var cacheKey = 'hg_' + zodiac + '_' + date;
+    var cached = null;
+    try { cached = localStorage.getItem(cacheKey); } catch(e) {}
+    if (cached) {
+      try { return Promise.resolve(JSON.parse(cached)); } catch(e) {}
+    }
     var sys = '你是一位专业星座运势分析师，用简洁专业的语气回复。分析要有个性，不要泛泛而谈。';
     var user = zodiac + ' 今日运势，' + date + '。请以 JSON 格式返回，字段：score(3.0-5.0一位小数), love(0-100整数), career(0-100整数), wealth(0-100整数), luckyColor(颜色), luckyNumber(1-9整数), luckyDirection(方向), tip(一两句运势提示，中文)。只返回 JSON，不要其他内容。';
     return API.callLLM(sys, user, 300).then(function(text) {
+      var data;
       try {
-        return JSON.parse(text);
+        data = JSON.parse(text);
       } catch(e) {
-        return {
-          score: 4.0, love: 75, career: 70, wealth: 65,
-          luckyColor: '紫色', luckyNumber: 7, luckyDirection: '东方',
-          tip: '今日运势平稳，顺其自然。'
-        };
+        data = { score: 4.0, love: 75, career: 70, wealth: 65, luckyColor: '紫色', luckyNumber: 7, luckyDirection: '东方', tip: '今日运势平稳，顺其自然。' };
       }
+      try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch(e) {}
+      return data;
     });
   },
 
