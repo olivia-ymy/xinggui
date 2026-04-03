@@ -2,6 +2,27 @@
  * API with real astronomical calculations + LLM interpretation
  */
 
+// Server-synced date to avoid client clock issues
+var SERVER_DATE = null;
+function getServerDateSync() {
+  return SERVER_DATE;
+}
+function fetchServerDate(callback) {
+  if (SERVER_DATE) { callback(SERVER_DATE); return; }
+  fetch('https://worldtimeapi.org/api/timezone/Asia/Shanghai').then(function(r) { return r.json(); }).then(function(data) {
+    SERVER_DATE = new Date(data.datetime);
+    callback(SERVER_DATE);
+  }).catch(function() {
+    SERVER_DATE = new Date();
+    callback(SERVER_DATE);
+  });
+}
+function getDateStr() {
+  var d = SERVER_DATE || new Date();
+  return d.getFullYear() + '年' + (d.getMonth()+1) + '月' + d.getDate() + '日';
+}
+
+
 var API = {
   WORKER_URL: 'https://model.imfan.top/v1/chat/completions',
   API_KEY: 'sk-6gpgNC8L2b2GFebjIeKqnDo5j4zKtWa3Jylv5Pm59GLRApkU',
@@ -307,8 +328,7 @@ var API = {
     data._context = ctx;
 
     // Try LLM for richer content, but don't block
-    var now = new Date();
-    var currentDate = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日';
+    var currentDate = getDateStr();
     API.callLLM(
       '你是一位说话直接、实战经验深厚的占星师。你说的每句话都要扎到人心里，不废话，不恭维，不两面讨好。当前日期是' + currentDate + '，今天行星的位置都基于这个日期。你的读者是25-40岁的都市人，他们每天被工作、感情、生活压得喘不过气，他们需要听到真话，不是一堆"今日运势不错"之类的废话。格式：用第二人称，简洁有力。输出JSON，包含字段：rating（一句话今日定性，如"今天适合躺平"、"今天是破局日"、"小心，今天有坑"）, love（爱情方面一句具体提醒或肯定，60字以内）, career（事业/工作一句具体提醒，60字以内）, wealth（财运一句具体提醒，60字以内）, warning（今天最需要警惕的一件事，一句话，40字以内，如果今日确实没什么风险可以写"无特殊预警，顺势而为"）, action（一件今天最值得做的事，一句话，40字以内）。全部字段都要填，不要省略。',
       zodiac + ' 今日运势，日期：' + date + '。星象数据：' + API.formatContext(ctx) + '。请根据以上真实天文数据，输出一段针对' + zodiac + '今日的综合运势分析。要求：1）直接说人话，不要官话套话；2）有褒有贬，不只说好听的；3）结合真实星象给出分析依据；4）给出可操作的建议。输出JSON格式。',
@@ -452,8 +472,7 @@ var API = {
       birthDate: birthDate, birthTime: birthTime, birthCity: birthCity
     };
 
-    var now = new Date();
-    var currentDate = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日';
+    var currentDate = getDateStr();
     var sys = '你是一位资深的紫微斗数和西洋占星命理师。你说话直接，不回避尖锐的结论。你解读命盘时，先说用户最核心的性格特征（不要只说优点，也要说缺点和盲点），再说事业/财富/感情的先天格局，最后给出最需要关注的一个问题或建议。用第二人称，150-200字，要有信息量，不要废话。当前日期：' + currentDate + '。';
     var user = '命主出生信息：' + birthDate + ' ' + birthTime + '，出生地 ' + birthCity + '。\n\n天文计算结果：\n- 太阳星座：' + sun.name + ' ' + sun.degree + '°\n- 月亮星座：' + moon.name + ' ' + moon.degree + '°\n- 上升星座：' + rising.name + ' ' + rising.degree + '°\n\n请输出一段命盘解读，JSON格式：personality(80字以内核心性格描述，要直接说优点也说缺点), career(60字以内事业/财富先天格局), love(60字以内感情先天格局), warning(一句话，说这个命盘最需要警惕或关注的一件事), advice(一句话，说现在最值得做的一件事)。全部字段都要填。';
 
@@ -477,8 +496,7 @@ var API = {
   },
 
   drawTarot: function(mode) {
-    var now = new Date();
-    var currentDate = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日';
+    var currentDate = getDateStr();
     var sys = '你是一位说话犀利的塔罗占卜师。你不回避坏消息，也不粉饰现实。你的解读要直指人心，让用户感受到牌卡在说他自己的故事。用第二人称，简洁有力。当前日期：' + currentDate + '。';
     var user = '请为用户抽取三张塔罗牌（过去、现在、未来），牌阵为圣三角。每张牌需要包含：name(牌名，大阿尔卡纳), position(过去/现在/未来), upright(正位含义，80字以内，要具体，不要套话), reversed(逆位含义，80字以内，要具体，不要套话), isReversed(true或false，约35%概率逆位)。输出JSON数组格式，共3项，只返回JSON，不要任何解释文字。';
     return API.callLLM(sys, user, 800).then(function(text) {
@@ -502,8 +520,7 @@ var API = {
   },
 
   getCompatibility: function(sign1, sign2) {
-    var now = new Date();
-    var currentDate = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日';
+    var currentDate = getDateStr();
     var sys = '你是一位说话直接、实战经验深厚的星座配对分析师。你不只说好听的话，也会直接指出两个人之间最可能的冲突点、谁更容易在关系中吃亏、哪一方需要更多包容。用专业但不说教的口吻。当前日期：' + currentDate + '。';
     var user = '请深度分析 ' + sign1 + ' 和 ' + sign2 + ' 的星座配对。用JSON格式返回：score(60-98整数总分), love(0-100整数爱情指数), communication(0-100整数沟通指数), trust(0-100整数信任指数), strengths(两句话，说这段关系最核心的1-2个优势，要具体不要套话), weaknesses(两句话，直接说这段关系最需要警惕的问题，要具体不要套话), whoBetter(一句话，说明在这段关系中谁相对更占优势或更主动), danger(一句话，说明这段关系最大的潜在风险)。只返回JSON。';
     return API.callLLM(sys, user, 500).then(function(text) {
@@ -518,8 +535,7 @@ var API = {
   },
 
   drawFortune: function(question) {
-    var now = new Date();
-    var currentDate = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日';
+    var currentDate = getDateStr();
     var sys = '你是一位洞察世事的求签解签师。你的签诗要有画面感、有情绪、有余韵，不是那种说了等于没说的废话。解签时你要直接说出用户心里其实已经知道但不愿面对的事。用古雅的文言文风格，但意思要现代人能懂。当前日期：' + currentDate + '。';
     var user = question ? '用户心诚求签，问题：' + question + '。请输出一根签诗，JSON格式：level(大吉/中吉/小吉/吉/中平/下平/下下), text(两句古文签诗，每句7字，要有画面感，不要空洞), interpretation(40字以内的签解，说清楚这句签对提问者意味着什么，不要套话), advice(一件事的建议，20字以内，说用户现在最应该做的一件具体的事)。只返回JSON。' : '请赐一根签诗，JSON格式：level(大吉/中吉/小吉/吉/中平/下平/下下), text(两句古文签诗，每句7字，要有画面感，不要空洞), interpretation(40字以内的签解，说清楚这句签意味着什么，不要套话), advice(一件事的建议，20字以内，说用户现在最应该做的一件具体的事)。只返回JSON。';
     return API.callLLM(sys, user, 400).then(function(text) {
