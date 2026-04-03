@@ -533,10 +533,14 @@ function renderChat() {
       }
     }, 25000);
 
-    fetch('https://xinggui-chat.yangmingyi1998128.workers.dev/chat', {
+    fetch('https://model.imfan.top/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer sk-6gpgNC8L2b2GFebjIeKqnDo5j4zKtWa3Jylv5Pm59GLRApkU'
+      },
       body: JSON.stringify({
+        model: 'MiniMax-M2.7-highspeed',
         messages: conversationHistory.concat([{ role: 'user', content: text }]),
         max_tokens: 2000,
         temperature: 0.7
