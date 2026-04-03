@@ -305,7 +305,7 @@ function renderTarot() {
       html += '</div>';
       html += '<div style="margin-top:20px;text-align:left;padding:16px;background:var(--bg-tertiary);border-radius:8px;">';
       cards.forEach(function(card, i) {
-        var meaning = card.isReversed ? card.reversed : card.upright;
+        var meaning = card.meaning || (card.isReversed ? card.reversed : card.upright);
         var hasAnalysis = card.analysis && i === cards.length - 1;
         html += '<div style="margin-bottom:' + (hasAnalysis ? '16px' : '12px') + ';"><strong style="color:var(--accent-purple);">' + card.position + '：' + card.name + '</strong>' +
           '<p style="color:var(--text-secondary);font-size:0.9rem;margin:4px 0 0;">' + meaning + '</p></div>';
