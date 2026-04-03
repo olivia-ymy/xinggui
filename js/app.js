@@ -641,7 +641,11 @@ function renderChat() {
     if (role === 'user') {
       div.innerHTML = '<div style="padding:12px;border-radius:12px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.2);line-height:1.7;">' + escHtml(content) + '</div><span style="width:36px;height:36px;border-radius:50%;background:rgba(34,211,238,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">😊</span>';
     } else {
-      div.innerHTML = '<span style="width:36px;height:36px;border-radius:50%;background:rgba(139,92,246,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">🧙</span><div style="padding:12px;border-radius:12px;background:var(--bg-tertiary);border:1px solid rgba(139,92,246,0.1);line-height:1.7;">' + content + '</div>';
+      // Render markdown for AI responses
+      var rendered = content;
+      try { if (typeof marked !== 'undefined') { rendered = marked.parse(content); } } catch(e) {}
+      try { if (typeof DOMPurify !== 'undefined') { rendered = DOMPurify.sanitize(rendered); } } catch(e) {}
+      div.innerHTML = '<span style="width:36px;height:36px;border-radius:50%;background:rgba(139,92,246,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">🧙</span><div style="padding:12px;border-radius:12px;background:var(--bg-tertiary);border:1px solid rgba(139,92,246,0.1);line-height:1.7;">' + rendered + '</div>';
     }
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
