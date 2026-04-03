@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>鏄熻建 XingGui 鈥?璇婃柇娴嬭瘯</title>
+  <title>XingGui - Diagnostic Test</title>
   <style>
     body { background: #0a0d14; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 40px; }
     h1 { color: #8b5cf6; }
@@ -12,53 +12,67 @@
     .card { background: #12182a; padding: 20px; border-radius: 16px; margin: 20px 0; border: 1px solid rgba(139,92,246,0.15); }
     canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
     .content { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; }
+    .status-ok { color: #22c55e; }
+    .status-err { color: #ef4444; }
   </style>
 </head>
 <body>
   <canvas id="starCanvas"></canvas>
   <div class="content">
-    <h1>鉁?鏄熻建 XingGui</h1>
-    <p>浠呬緵濞变箰锛岃鍕胯繃浜庤鐪?/p>
+    <h1>* XingGui *</h1>
+    <p>Test page - entertainment only</p>
     <nav class="nav">
-      <a href="#/">棣栭〉</a>
-      <a href="#/chart">鏄熺洏</a>
-      <a href="#/tarot">濉旂綏</a>
-      <a href="#/compatibility">閰嶅</a>
-      <a href="#/fortune">鎶界</a>
-      <a href="#/fate">馃 鍛借繍鍜ㄨ</a>
+      <a href="#/">Home</a>
+      <a href="#/chart">Chart</a>
+      <a href="#/tarot">Tarot</a>
+      <a href="#/compatibility">Match</a>
+      <a href="#/fortune">Fortune</a>
+      <a href="#/fate">Fate</a>
     </nav>
     <div class="card">
-      <h2>璇婃柇淇℃伅</h2>
-      <p>濡傛灉鑳界湅鍒拌繖涓崱鐗囷紝璇存槑 HTML 鍜?CSS 姝ｅ父銆?/p>
-      <p>Star field 鑳屾櫙: <span id="canvasStatus">妫€娴嬩腑...</span></p>
-      <p>JS 鐘舵€? <span id="jsStatus">妫€娴嬩腑...</span></p>
+      <h2>Diagnostic</h2>
+      <p>Canvas status: <span id="canvasStatus">testing...</span></p>
+      <p>JS status: <span id="jsStatus">testing...</span></p>
+      <p>Charset: UTF-8</p>
+    </div>
+    <div class="card">
+      <h2>Main Pages</h2>
+      <p>If you see cards above with colored borders, CSS is working.</p>
+      <p>If you see purple stars falling, canvas is working.</p>
     </div>
   </div>
   <script>
-    // Simple starfield
-    var canvas = document.getElementById('starCanvas');
-    var ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    var particles = [];
-    for (var i = 0; i < 100; i++) {
-      particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 1.5 + 0.5, opacity: Math.random() * 0.5 + 0.2 });
+    try {
+      var canvas = document.getElementById('starCanvas');
+      var ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      var particles = [];
+      for (var i = 0; i < 100; i++) {
+        particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 1.5 + 0.5, opacity: Math.random() * 0.5 + 0.2 });
+      }
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(function(p) {
+          p.y -= 0.1;
+          if (p.y < 0) p.y = canvas.height;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(139, 92, 246, ' + p.opacity + ')';
+          ctx.fill();
+        });
+        requestAnimationFrame(animate);
+      }
+      animate();
+      document.getElementById('canvasStatus').innerHTML = '<span class="status-ok">OK - purple stars falling</span>';
+    } catch(e) {
+      document.getElementById('canvasStatus').innerHTML = '<span class="status-err">ERROR: ' + e.message + '</span>';
     }
-    function animate() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach(function(p) {
-        p.y -= 0.1;
-        if (p.y < 0) p.y = canvas.height;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(139, 92, 246, ' + p.opacity + ')';
-        ctx.fill();
-      });
-      requestAnimationFrame(animate);
+    try {
+      document.getElementById('jsStatus').innerHTML = '<span class="status-ok">OK</span>';
+    } catch(e) {
+      document.getElementById('jsStatus').innerHTML = '<span class="status-err">ERROR: ' + e.message + '</span>';
     }
-    animate();
-    document.getElementById('canvasStatus').textContent = '鉁?姝ｅ父';
-    document.getElementById('jsStatus').textContent = '鉁?姝ｅ父';
   </script>
 </body>
 </html>
