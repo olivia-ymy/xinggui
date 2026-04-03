@@ -363,6 +363,49 @@ function renderFortune() {
 }
 
 // ==================== FATE ====================
+  // Format iztro astrolabe data for LLM
+  function formatAstrolabe(astrolabe) {
+    var lines = [];
+    lines.push('=== 紫微斗数星盘 ===');
+    lines.push('');
+    lines.push('【十二宫】');
+    var palaceNames = ['命宫', '兄弟宫', '夫妻宫', '子女宫', '财帛宫', '疾厄宫', '迁移宫', '交友宫', '官禄宫', '田宅宫', '福德宫', '父母宫'];
+    for (var i = 0; i < 12; i++) {
+      var p = astrolabe.palace(i);
+      if (!p) continue;
+      var mainStar = p.mainStar || '无';
+      var stars = p.stars ? p.stars.join('、') : '';
+      var trans = p.transformations ? p.transformations.join('、') : '';
+      var line = palaceNames[i] + '：主星【' + mainStar + '】';
+      if (stars) line += ' | 辅星：' + stars;
+      if (trans) line += ' | 四化：' + trans;
+      lines.push(line);
+    }
+    lines.push('');
+    lines.push('【四化】');
+    if (astrolabe.transformations) {
+      astrolabe.transformations.forEach(function(t) {
+        lines.push(t.star + '化' + t.mutagen + '：' + (t.inPalace || ''));
+      });
+    }
+    lines.push('');
+    lines.push('【大限（前八限）】');
+    if (astrolabe.horoscopes) {
+      var majorCycles = astrolabe.horoscopes.filter(function(h) { return h.type === '大限'; });
+      majorCycles.slice(0, 8).forEach(function(h) {
+        lines.push(h.startAge + '-' + h.endAge + '岁（第' + h.index + '大限）：' + (h.mainStars ? h.mainStars.join('、') : '') + ' | ' + (h.origin || ''));
+      });
+    }
+    lines.push('');
+    lines.push('【流年（前八年）】');
+    if (astrolabe.annualFortune) {
+      astrolabe.annualFortune.slice(0, 8).forEach(function(a) {
+        lines.push(a.age + '岁（' + a.year + '年）：' + (a.stars ? a.stars.join('、') : '') + ' | ' + (a.note || ''));
+      });
+    }
+    return lines.join('\n');
+  }
+
 function renderFate() {
   var app = document.getElementById('app');
   var isVerified = sessionStorage.getItem('fate_verified');
@@ -484,7 +527,26 @@ function renderChat() {
 
   addChatStyles();
 
-  var systemPrompt = '你现在是资深的国学易经术数领域专家，综合使用三合紫微、飞星紫微、河洛紫微、禄马四化等各流派紫微的分析技法。对盘十二宫星曜分布、限流叠宫和各宫位间的飞宫四化进行细致分析，进而对命主的健康、学业、事业、财运、人际关系、婚姻和感情等各个方面进行全面分析和总结，关键事件需给出发生的时间范围、吉凶属性、事件对命主的影响程度等信息，并结合命主的自身特点给出针对性的解决方案和建议。另外，命盘信息里附带了十二个大限共一百二十个流年的信息，请对前八个大限的所有流年进行分析，给出每一年需要关注的重大事件和注意事项。你先设置好自身角色，然后向我提问我的个人信息，直至你认为可以给我推演。此外，你也精通西方星座和占星术和塔罗牌，可以用生成塔罗牌进行互动占卜。\n\n命主信息：\n- 性别：' + genderText + '\n- 出生日期：' + profile.birthDate + ' ' + profile.birthTime + '\n- 出生地点：' + profile.birthPlace + '\n- 历法：' + calText + '\n\n你扮演一位对话形式的算命先生，用温暖专业的语气与用户交流。';
+  // Generate real Zi Wei Dou Shu astrolabe
+  var astrolabeStr = '';
+  try {
+    var birthDateStr = profile.birthDate; // YYYY-MM-DD
+    var timeHour = parseInt(profile.birthTime.split(':')[0]);
+    var genderStr = profile.gender === 'male' ? '男' : '女';
+    var isLunar = profile.calendar === 'lunar';
+    var astrolabe;
+    if (isLunar) {
+      // For lunar calendar, need to convert... use byLunar
+      astrolabe = window.iztro && window.iztro.astro && window.iztro.astro.byLunar(birthDateStr, timeHour, false, genderStr, 'zh-CN');
+    } else {
+      astrolabe = window.iztro && window.iztro.astro && window.iztro.astro.bySolar(birthDateStr, timeHour, genderStr, true, 'zh-CN');
+    }
+    if (astrolabe) {
+      astrolabeStr = '\n\n' + formatAstrolabe(astrolabe);
+    }
+  } catch(e) {}
+
+  var systemPrompt = '你现在是资深的国学易经术数领域专家，综合使用三合紫微、飞星紫微、河洛紫微、禄马四化等各流派紫微的分析技法。对盘十二宫星曜分布、限流叠宫和各宫位间的飞宫四化进行细致分析，进而对命主的健康、学业、事业、财运、人际关系、婚姻和感情等各个方面进行全面分析和总结，关键事件需给出发生的时间范围、吉凶属性、事件对命主的影响程度等信息，并结合命主的自身特点给出针对性的解决方案和建议。另外，命盘信息里附带了十二个大限共一百二十个流年的信息，请对前八个大限的所有流年进行分析，给出每一年需要关注的重大事件和注意事项。你先设置好自身角色，然后向我提问我的个人信息，直至你认为可以给我推演。此外，你也精通西方星座和占星术和塔罗牌，可以用生成塔罗牌进行互动占卜。\n\n命主信息：\n- 性别：' + genderText + '\n- 出生日期：' + profile.birthDate + ' ' + profile.birthTime + '\n- 出生地点：' + profile.birthPlace + '\n- 历法：' + calText + astrolabeStr + '\n\n你扮演一位对话形式的算命先生，用温暖专业的语气与用户交流。';
 
   var conversationHistory = [{ role: 'system', content: systemPrompt }];
 
