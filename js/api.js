@@ -4,6 +4,47 @@
 
 // Server-synced date to avoid client clock issues
 var SERVER_DATE = null;
+var MAJOR_ARCANA = [
+  { name: '愚人', upright: '新的开始，自由的冒险，可能性。', reversed: '冲动，轻率，方向迷失。' },
+  { name: '魔术师', upright: '创造力，行动力，意志力，自信。', reversed: '计划拖延，技能不足，沟通不良。' },
+  { name: '女祭司', upright: '直觉，神秘，内在智慧，隐藏的信息。', reversed: '秘密，欺骗，直觉被压制。' },
+  { name: '皇后', upright: '丰收，创造力，自然，丰盛，母性。', reversed: '依附他人，缺乏成长，财务上的损失。' },
+  { name: '皇帝', upright: '权威，结构，掌控，父亲般的保护。', reversed: '控制欲过强，缺少自律，硬件。' },
+  { name: '教皇', upright: '信仰，灵性，传统，群体，道德。', reversed: '权威冲突，个人信仰被压制，过度依赖传统。' },
+  { name: '恋人', upright: '爱，魅力，选择，和谐，关系。', reversed: '不和谐，失衡，价值冲突，不当的结合。' },
+  { name: '战车', upright: '意志力，成功，控制，决心，胜利。', reversed: '失控，缺乏方向，冲突，军事。' },
+  { name: '力量', upright: '勇气，毅力，善良，压力下的优雅。', reversed: '自我怀疑，脆弱，焦虑，内心冲突。' },
+  { name: '隐者', upright: '内省，探索，沉思，独处，精神的指引。', reversed: '孤立，孤独，拒绝独处，失去方向。' },
+  { name: '命运之轮', upright: '运气，命运，转折点， Cycles，意外事件。', reversed: '阻滞，厄运，意外的延误， Cycle 延迟。' },
+  { name: '正义', upright: '公正，诚信，因果，真相，法律的指示。', reversed: '不公正，不诚实，缺乏责任感，报复。' },
+  { name: '倒吊人', upright: '等待，心甘情愿的牺牲，新的观点，悬而未决。', reversed: '拖延，无意义的牺牲，拒绝改变，不愿意。' },
+  { name: '死神', upright: '结束，蜕变，转变，清算， Doorway。', reversed: '抗拒结束，拖延，负隅顽抗，当前的终结。' },
+  { name: '节欲', upright: '平衡，耐心，方法，节制，目的。', reversed: '失衡，逸轨，强迫行为，不良习惯。' },
+  { name: '恶魔', upright: '束缚，诱惑，物质主义，灰暗。', reversed: '打破束缚，释放，放下，解放。' },
+  { name: '塔', upright: '突变，破坏，解放，觉醒，冲击。', reversed: '压抑的灾难，内部冲突，恐惧变化。' },
+  { name: '星星', upright: '希望，信念，目的， seren ，宇宙的恩赐。', reversed: '绝望，信念丧失，缺乏目标，不协调。' },
+  { name: '月亮', upright: '错觉，恐惧，焦虑，无意识，困惑。', reversed: '恐惧消散，幻灭，摆脱欺骗， inner 混乱。' },
+  { name: '太阳', upright: '喜悦，成功，活力，生命力，温暖。', reversed: '情绪低落，成功暂时，情绪萎靡，过度兴奋。' },
+  { name: '审判', upright: '复兴， reevaluation ，内省，宽恕，更新。', reversed: '自我怀疑，遗憾， reevaluation 延迟，缺乏信心。' },
+  { name: '世界', upright: '完成，整合，成就感， Travel， Cycles 的完成。', reversed: '缺乏完成感，失望，目标未达成，感觉被困。' },
+  { name: '愚人', upright: '新的开始，可能性，纯洁，天真。', reversed: '冲动，冒险， Reckless ，鲁莽。' }
+];
+// Remove duplicate last entry
+MAJOR_ARCANA.pop();
+function shuffleArray(arr) {
+  var result = arr.slice();
+  for (var i = result.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var temp = result[i];
+    result[i] = result[j];
+    result[j] = temp;
+  }
+  return result;
+}
+function pickRandomCards(n) {
+  var shuffled = shuffleArray(MAJOR_ARCANA);
+  return shuffled.slice(0, n);
+}
 function getServerDateSync() {
   return SERVER_DATE;
 }
@@ -498,30 +539,45 @@ var API = {
 
   drawTarot: function(mode, question) {
     var currentDate = getDateStr();
+    var cards = pickRandomCards(3);
+    var positions = ['过去', '现在', '未来'];
+    var drawn = cards.map(function(card, i) {
+      var isReversed = Math.random() < 0.35;
+      return {
+        name: card.name,
+        position: positions[i],
+        upright: card.upright,
+        reversed: card.reversed,
+        isReversed: isReversed
+      };
+    });
+
     var sys = '你是一位说话犀利的塔罗占卜师。你不回避坏消息，也不粉饰现实。你的解读要直指人心，让用户感受到牌卡在说他自己的故事。用第二人称，简洁有力。当前日期：' + currentDate + '。';
-    var user = question ? ('用户问题：' + question + '。\n请为用户抽取三张塔罗牌（过去、现在、未来），牌阵为圣三角。每张牌需要包含：name(牌名，大阿尔卡纳), position(过去/现在/未来), upright(正位含义，80字以内，要具体，结合用户问题展开), reversed(逆位含义，80字以内，要具体，结合用户问题展开), isReversed(true或false，约35%概率逆位)。最后给出一段针对用户问题的综合解读（100字以内），把三张牌串联起来，直接回答用户的问题，不要泛泛而谈。输出JSON格式，包含cards数组(3项，每项含上述字段)和analysis(综合解读字符串，100字以内)，只返回JSON。') : ('请为用户抽取三张塔罗牌（过去、现在、未来），牌阵为圣三角。每张牌需要包含：name(牌名，大阿尔卡纳), position(过去/现在/未来), upright(正位含义，80字以内，要具体，不要套话), reversed(逆位含义，80字以内，要具体，不要套话), isReversed(true或false，约35%概率逆位)。最后给出一段综合解读（100字以内），把三张牌串联起来，给出整体指引。输出JSON格式，包含cards数组(3项，每项含上述字段)和analysis(综合解读字符串，100字以内)，只返回JSON。');
+    var user = question ? ('用户问题：' + question + '。\n三张牌（随机抽取）：\n1. ' + drawn[0].name + ' - ' + drawn[0].position + ' - ' + (drawn[0].isReversed ? '逆位' : '正位') + '：' + (drawn[0].isReversed ? drawn[0].reversed : drawn[0].upright) + '\n2. ' + drawn[1].name + ' - ' + drawn[1].position + ' - ' + (drawn[1].isReversed ? '逆位' : '正位') + '：' + (drawn[1].isReversed ? drawn[1].reversed : drawn[1].upright) + '\n3. ' + drawn[2].name + ' - ' + drawn[2].position + ' - ' + (drawn[2].isReversed ? '逆位' : '正位') + '：' + (drawn[2].isReversed ? drawn[2].reversed : drawn[2].upright) + '\n\n请根据以上牌面，结合用户问题，给出每张牌的解读（每个position一段，80字以内，要结合牌义和问题展开，不要泛泛而谈），最后给出一段综合解读（100字以内），把三张牌串联起来，直接回答用户的问题。只返回JSON，格式：{interpretations:[每张牌的解读字符串，3项],analysis:综合解读字符串}。') : ('三张牌（随机抽取）：\n1. ' + drawn[0].name + ' - ' + drawn[0].position + ' - ' + (drawn[0].isReversed ? '逆位' : '正位') + '：' + (drawn[0].isReversed ? drawn[0].reversed : drawn[0].upright) + '\n2. ' + drawn[1].name + ' - ' + drawn[1].position + ' - ' + (drawn[1].isReversed ? '逆位' : '正位') + '：' + (drawn[1].isReversed ? drawn[1].reversed : drawn[1].upright) + '\n3. ' + drawn[2].name + ' - ' + drawn[2].position + ' - ' + (drawn[2].isReversed ? '逆位' : '正位') + '：' + (drawn[2].isReversed ? drawn[2].reversed : drawn[2].upright) + '\n\n请给出每张牌的解读（每个position一段，80字以内，要结合牌义展开，不要泛泛而谈），最后给出一段综合解读（100字以内），把三张牌串联起来。只返回JSON，格式：{interpretations:[每张牌的解读字符串，3项],analysis:综合解读字符串}。');
+
     return API.callLLM(sys, user, 1200).then(function(text) {
       try {
         var parsed = JSON.parse(text);
-        var cards = Array.isArray(parsed.cards) ? parsed.cards : (Array.isArray(parsed) ? parsed : [parsed]);
-        // Attach analysis to last card
-        if (cards.length > 0 && parsed.analysis) {
-          cards[cards.length - 1].analysis = parsed.analysis;
+        var interpretations = Array.isArray(parsed.interpretations) ? parsed.interpretations : [];
+        drawn.forEach(function(card, i) {
+          card.meaning = interpretations[i] || (card.isReversed ? card.reversed : card.upright);
+        });
+        if (parsed.analysis) {
+          drawn[2].analysis = parsed.analysis;
         }
-        return cards;
+        return drawn;
       } catch(e) {
-        return [
-          { name: '命运之轮', position: '过去', upright: '过去的关键转折点已发生，命运之轮正在转动。', reversed: '时机未到，或错过了某个重要的转折机会。', isReversed: false },
-          { name: '死神', position: '现在', upright: '某个阶段正在结束，抗拒没有意义，拥抱变化才能重生。', reversed: '你不愿放手的东西正在以更痛苦的方式迫使你放下。', isReversed: true },
-          { name: '高塔', position: '未来', upright: '即将有冲击，但这是打破幻象、重建真实的机会。', reversed: '潜在的危机被拖延或掩盖，没有真正解决问题。', isReversed: false }
-        ];
+        // Fallback: use the card's built-in meaning
+        drawn.forEach(function(card) {
+          card.meaning = card.isReversed ? card.reversed : card.upright;
+        });
+        return drawn;
       }
     }).catch(function() {
-      return [
-        { name: '命运之轮', position: '过去', upright: '过去的关键转折点已发生，命运之轮正在转动。', reversed: '时机未到，或错过了某个重要的转折机会。', isReversed: false },
-        { name: '死神', position: '现在', upright: '某个阶段正在结束，抗拒没有意义，拥抱变化才能重生。', reversed: '你不愿放手的东西正在以更痛苦的方式迫使你放下。', isReversed: true },
-        { name: '高塔', position: '未来', upright: '即将有冲击，但这是打破幻象、重建真实的机会。', reversed: '潜在的危机被拖延或掩盖，没有真正解决问题。', isReversed: false }
-      ];
+      drawn.forEach(function(card) {
+        card.meaning = card.isReversed ? card.reversed : card.upright;
+      });
+      return drawn;
     });
   },
 
