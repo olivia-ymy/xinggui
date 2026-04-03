@@ -40,6 +40,19 @@ function initRouter() {
   window.addEventListener('load', handleRoute);
 }
 
+// Server-synced date to avoid client clock issues
+var SERVER_DATE = null;
+function getServerDate(callback) {
+  if (SERVER_DATE) { callback(SERVER_DATE); return; }
+  fetch('https://worldtimeapi.org/api/timezone/Asia/Shanghai').then(function(r) { return r.json(); }).then(function(data) {
+    SERVER_DATE = new Date(data.datetime);
+    callback(SERVER_DATE);
+  }).catch(function() {
+    SERVER_DATE = new Date();
+    callback(SERVER_DATE);
+  });
+}
+
 // Mobile nav
 document.getElementById('navToggle').addEventListener('click', function() {
   document.getElementById('mainNav').classList.toggle('active');
@@ -97,12 +110,9 @@ function renderHome() {
           astroHtml += '</div>';
         }
 
-        var d = new Date();
-        var monthStr = d.getMonth() + 1;
-        var dayStr = d.getDate();
-        var todayStr = d.getFullYear() + '年' + (monthStr < 10 ? '0' : '') + monthStr + '月' + (dayStr < 10 ? '0' : '') + dayStr + '日';
+        var todayStr = SERVER_DATE ? (SERVER_DATE.getFullYear() + '年' + (SERVER_DATE.getMonth()+1) + '月' + SERVER_DATE.getDate() + '日') : new Date().toLocaleDateString('zh-CN');
         var weekDays = ['周日','周一','周二','周三','周四','周五','周六'];
-        var wd = weekDays[d.getDay()];
+        var wd = weekDays[SERVER_DATE ? SERVER_DATE.getDay() : new Date().getDay()];
         resultDiv.innerHTML = '<div class="card" style="padding:24px;">' +
           '<div style="text-align:center;margin-bottom:16px;">' +
           '<div style="font-size:2rem;margin-bottom:4px;">' + ZODIACS.find(function(z){return z.name===zodiac;}).icon + '</div>' +
@@ -573,9 +583,9 @@ function renderChat() {
     }
   } catch(e) {}
 
-  // Get current date for LLM context
-  var now = new Date();
-  var currentDate = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日';
+  // Get server-synced date for LLM context
+  var fateNow = SERVER_DATE || new Date();
+  var currentDate = fateNow.getFullYear() + '年' + (fateNow.getMonth()+1) + '月' + fateNow.getDate() + '日';
   var systemPrompt = '你现在是资深的国学易经术数领域专家，综合使用三合紫微、飞星紫微、河洛紫微、禄马四化等各流派紫微的分析技法。对盘十二宫星曜分布、限流叠宫和各宫位间的飞宫四化进行细致分析，进而对命主的健康、学业、事业、财运、人际关系、婚姻和感情等各个方面进行全面分析和总结，关键事件需给出发生的时间范围、吉凶属性、事件对命主的影响程度等信息，并结合命主的自身特点给出针对性的解决方案和建议。另外，命盘信息里附带了十二个大限共一百二十个流年的信息，请对前八个大限的所有流年进行分析，给出每一年需要关注的重大事件和注意事项。你先设置好自身角色，然后向我提问我的个人信息，直至你认为可以给我推演。此外，你也精通西方星座和占星术和塔罗牌，可以用生成塔罗牌进行互动占卜。当前日期：' + currentDate + '。\n\n命主信息：\n- 性别：' + genderText + '\n- 出生日期：' + profile.birthDate + ' ' + profile.birthTime + '\n- 出生地点：' + profile.birthPlace + '\n- 历法：' + calText + astrolabeStr + '\n\n你扮演一位对话形式的命理师，用温暖专业、耐心真诚的语气与用户交流。语气不油腻、不浮夸，真心希望通过命理分析帮助用户更好地了解自己、面对人生选择。不急于下结论，先倾听，再细致分析。';
 
   var conversationHistory = [{ role: 'system', content: systemPrompt }];
