@@ -277,8 +277,14 @@ function renderTarot() {
     btn.disabled = true;
     btn.textContent = '洗牌中...';
 
-    API.drawTarot('three').then(function(cards) {
-      var html = '<div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:16px;">';
+    API.drawTarot('three', question).then(function(cards) {
+      var html = '';
+      if (question) {
+        html += '<div style="margin-bottom:16px;padding:12px 16px;background:rgba(139,92,246,0.06);border-radius:8px;border-left:3px solid var(--accent-purple);">' +
+          '<span style="color:var(--text-muted);font-size:0.85rem;">您的问题：</span>' +
+          '<span style="color:var(--text-primary);font-size:0.9rem;margin-left:8px;">' + question + '</span></div>';
+      }
+      html += '<div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:16px;">';
       cards.forEach(function(card, i) {
         var meanings = card.isReversed ? '<div style="color:var(--danger);font-size:0.8rem;">逆位</div>' : '<div style="color:var(--accent-gold);font-size:0.8rem;">正位</div>';
         html += '<div style="width:100px;text-align:center;">' +
@@ -293,8 +299,14 @@ function renderTarot() {
       html += '<div style="margin-top:20px;text-align:left;padding:16px;background:var(--bg-tertiary);border-radius:8px;">';
       cards.forEach(function(card, i) {
         var meaning = card.isReversed ? card.reversed : card.upright;
-        html += '<div style="margin-bottom:12px;"><strong style="color:var(--accent-purple);">' + card.position + '：' + card.name + '</strong>' +
+        var hasAnalysis = card.analysis && i === cards.length - 1;
+        html += '<div style="margin-bottom:' + (hasAnalysis ? '16px' : '12px') + ';"><strong style="color:var(--accent-purple);">' + card.position + '：' + card.name + '</strong>' +
           '<p style="color:var(--text-secondary);font-size:0.9rem;margin:4px 0 0;">' + meaning + '</p></div>';
+        if (hasAnalysis) {
+          html += '<div style="margin-top:16px;padding:12px;background:rgba(139,92,246,0.08);border-radius:6px;border-left:3px solid var(--accent-cyan);">' +
+            '<strong style="color:var(--accent-cyan);font-size:0.9rem;">✦ 综合解读</strong>' +
+            '<p style="color:var(--text-primary);font-size:0.9rem;margin:6px 0 0;line-height:1.6;">' + card.analysis + '</p></div>';
+        }
       });
       html += '</div>';
       document.getElementById('tarotResult').innerHTML = html;
