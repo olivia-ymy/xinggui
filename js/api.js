@@ -495,14 +495,19 @@ var API = {
     });
   },
 
-  drawTarot: function(mode) {
+  drawTarot: function(mode, question) {
     var currentDate = getDateStr();
     var sys = '你是一位说话犀利的塔罗占卜师。你不回避坏消息，也不粉饰现实。你的解读要直指人心，让用户感受到牌卡在说他自己的故事。用第二人称，简洁有力。当前日期：' + currentDate + '。';
-    var user = '请为用户抽取三张塔罗牌（过去、现在、未来），牌阵为圣三角。每张牌需要包含：name(牌名，大阿尔卡纳), position(过去/现在/未来), upright(正位含义，80字以内，要具体，不要套话), reversed(逆位含义，80字以内，要具体，不要套话), isReversed(true或false，约35%概率逆位)。输出JSON数组格式，共3项，只返回JSON，不要任何解释文字。';
-    return API.callLLM(sys, user, 800).then(function(text) {
+    var user = question ? ('用户问题：' + question + '。\n请为用户抽取三张塔罗牌（过去、现在、未来），牌阵为圣三角。每张牌需要包含：name(牌名，大阿尔卡纳), position(过去/现在/未来), upright(正位含义，80字以内，要具体，结合用户问题展开), reversed(逆位含义，80字以内，要具体，结合用户问题展开), isReversed(true或false，约35%概率逆位)。最后给出一段针对用户问题的综合解读（100字以内），把三张牌串联起来，直接回答用户的问题，不要泛泛而谈。输出JSON格式，包含cards数组(3项，每项含上述字段)和analysis(综合解读字符串，100字以内)，只返回JSON。') : ('请为用户抽取三张塔罗牌（过去、现在、未来），牌阵为圣三角。每张牌需要包含：name(牌名，大阿尔卡纳), position(过去/现在/未来), upright(正位含义，80字以内，要具体，不要套话), reversed(逆位含义，80字以内，要具体，不要套话), isReversed(true或false，约35%概率逆位)。最后给出一段综合解读（100字以内），把三张牌串联起来，给出整体指引。输出JSON格式，包含cards数组(3项，每项含上述字段)和analysis(综合解读字符串，100字以内)，只返回JSON。');
+    return API.callLLM(sys, user, 1200).then(function(text) {
       try {
-        var data = JSON.parse(text);
-        return Array.isArray(data) ? data : [data];
+        var parsed = JSON.parse(text);
+        var cards = Array.isArray(parsed.cards) ? parsed.cards : (Array.isArray(parsed) ? parsed : [parsed]);
+        // Attach analysis to last card
+        if (cards.length > 0 && parsed.analysis) {
+          cards[cards.length - 1].analysis = parsed.analysis;
+        }
+        return cards;
       } catch(e) {
         return [
           { name: '命运之轮', position: '过去', upright: '过去的关键转折点已发生，命运之轮正在转动。', reversed: '时机未到，或错过了某个重要的转折机会。', isReversed: false },
@@ -537,7 +542,7 @@ var API = {
   drawFortune: function(question) {
     var currentDate = getDateStr();
     var sys = '你是一位洞察世事的求签解签师。你的签诗要有画面感、有情绪、有余韵，不是那种说了等于没说的废话。解签时你要直接说出用户心里其实已经知道但不愿面对的事。用古雅的文言文风格，但意思要现代人能懂。当前日期：' + currentDate + '。';
-    var user = question ? '用户心诚求签，问题：' + question + '。请输出一根签诗，JSON格式：level(大吉/中吉/小吉/吉/中平/下平/下下), text(两句古文签诗，每句7字，要有画面感，不要空洞), interpretation(40字以内的签解，说清楚这句签对提问者意味着什么，不要套话), advice(一件事的建议，20字以内，说用户现在最应该做的一件具体的事)。只返回JSON。' : '请赐一根签诗，JSON格式：level(大吉/中吉/小吉/吉/中平/下平/下下), text(两句古文签诗，每句7字，要有画面感，不要空洞), interpretation(40字以内的签解，说清楚这句签意味着什么，不要套话), advice(一件事的建议，20字以内，说用户现在最应该做的一件具体的事)。只返回JSON。';
+    var user = question ? ('用户心诚求签，问题：' + question + '。\n请输出一根签诗，JSON格式：level(大吉/中吉/小吉/吉/中平/下平/下下), text(两句古文签诗，每句7字，要有画面感，不要空洞), interpretation(60字以内，说清楚这句签对提问者意味着什么，不要套话，要直接说出用户心里其实已经知道但不愿面对的事), advice(一件事的建议，20字以内，说用户现在最应该做的一件具体的事)。只返回JSON。') : ('请赐一根签诗，JSON格式：level(大吉/中吉/小吉/吉/中平/下平/下下), text(两句古文签诗，每句7字，要有画面感，不要空洞), interpretation(60字以内，说清楚这句签意味着什么，不要套话), advice(一件事的建议，20字以内，说用户现在最应该做的一件具体的事)。只返回JSON。');
     return API.callLLM(sys, user, 400).then(function(text) {
       try {
         return JSON.parse(text);
