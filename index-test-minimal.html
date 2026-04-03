@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XingGui - Ultra Minimal Test</title>
+  <!-- NO external CSS files -->
+  <!-- NO CSS variables -->
+  <!-- NO backdrop-filter -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background-color: #0a0d14;
+      color: #e2e8f0;
+      padding: 40px;
+      line-height: 1.6;
+    }
+    h1 { color: #8b5cf6; margin-bottom: 20px; }
+    .card {
+      background: #12182a;
+      padding: 20px;
+      border-radius: 16px;
+      margin: 20px 0;
+      border: 1px solid rgba(139,92,246,0.3);
+    }
+    .status { font-weight: bold; }
+    .ok { color: #22c55e; }
+    .err { color: #ef4444; }
+    nav { margin: 20px 0; display: flex; gap: 15px; flex-wrap: wrap; }
+    a {
+      color: #8b5cf6;
+      text-decoration: none;
+      padding: 8px 16px;
+      background: rgba(139,92,246,0.15);
+      border-radius: 8px;
+    }
+    a:hover { background: rgba(139,92,246,0.25); }
+    #app { margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <h1>XingGui Ultra Minimal</h1>
+  <p>This page uses NO CSS variables, NO backdrop-filter, NO ES6, NO canvas, NO external dependencies.</p>
+  
+  <nav>
+    <a href="#/">Home</a>
+    <a href="#/chart">Chart</a>
+    <a href="#/tarot">Tarot</a>
+    <a href="#/fate">Fate</a>
+  </nav>
+
+  <div class="card">
+    <h2>Diagnostic</h2>
+    <p>CSS loaded: <span id="cssStatus" class="status">?</span></p>
+    <p>JS working: <span id="jsStatus" class="status">?</span></p>
+    <p>DOM ready: <span id="domStatus" class="status">?</span></p>
+    <p>Date: <span id="dateStatus" class="status">?</span></p>
+  </div>
+
+  <div class="card">
+    <h2>Interactive Test</h2>
+    <button id="testBtn" style="padding:10px 20px;background:#8b5cf6;color:white;border:none;border-radius:8px;cursor:pointer;">Click Me</button>
+    <span id="btnResult" style="margin-left:15px;"></span>
+  </div>
+
+  <div class="card">
+    <h2>Output</h2>
+    <div id="output" style="color:#94a3b8;">Waiting...</div>
+  </div>
+
+  <script>
+    // No ES6 features - pure ES5
+    document.getElementById('cssStatus').innerHTML = '<span class="ok">OK - inline styles working</span>';
+    document.getElementById('domStatus').innerHTML = '<span class="ok">OK</span>';
+    document.getElementById('jsStatus').innerHTML = '<span class="ok">OK</span>';
+    document.getElementById('dateStatus').innerHTML = '<span class="ok">' + new Date().toLocaleString() + '</span>';
+
+    // Simple array test (no arrow functions)
+    var fruits = ['apple', 'banana', 'cherry'];
+    var list = '';
+    for (var i = 0; i < fruits.length; i++) {
+      list += fruits[i];
+      if (i < fruits.length - 1) list += ', ';
+    }
+    document.getElementById('output').textContent = 'Array test: ' + list;
+
+    // Button test
+    var btn = document.getElementById('testBtn');
+    var result = document.getElementById('btnResult');
+    btn.onclick = function() {
+      result.innerHTML = '<span class="ok">Button works! ✓</span>';
+    };
+
+    // Log for debugging
+    console.log('XingGui ultra minimal test loaded');
+  </script>
+</body>
+</html>
