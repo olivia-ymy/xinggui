@@ -181,24 +181,38 @@ var API = {
   // ===================== LLM CALL =====================
 
   callLLM: function(systemPrompt, userPrompt, maxTokens) {
-    return fetch(API.WORKER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        max_tokens: maxTokens || 800,
-        temperature: 0.7
-      })
-    }).then(function(res) {
-      if (!res.ok) throw new Error('API Error ' + res.status);
-      return res.json();
-    }).then(function(data) {
-      var reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-      if (!reply) throw new Error('No content in response');
-      return reply;
+    return new Promise(function(resolve, reject) {
+      var done = false;
+      var timeout = setTimeout(function() {
+        if (!done) {
+          done = true;
+          reject(new Error('timeout'));
+        }
+      }, 25000);
+      fetch(API.WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          max_tokens: maxTokens || 800,
+          temperature: 0.7
+        })
+      }).then(function(res) {
+        clearTimeout(timeout);
+        if (!res.ok) throw new Error('API Error ' + res.status);
+        return res.json();
+      }).then(function(data) {
+        var reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+        if (!reply) throw new Error('Empty response');
+        done = true;
+        resolve(reply);
+      }).catch(function(err) {
+        clearTimeout(timeout);
+        if (!done) { done = true; reject(err); }
+      });
     });
   },
 
