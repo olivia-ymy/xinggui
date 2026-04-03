@@ -522,7 +522,17 @@ function renderChat() {
     msgs.appendChild(thinking);
     msgs.scrollTop = msgs.scrollHeight;
 
-    // Call API
+    // Call API with timeout
+    var done = false;
+    var timer = setTimeout(function() {
+      if (!done) {
+        done = true;
+        var thinkEl = document.getElementById('thinking');
+        if (thinkEl) thinkEl.remove();
+        addMsg('master', '抱歉，服务响应超时。请检查网络后重试，或稍等几秒后再次发送。（内测阶段 Worker 可能正在冷启动）');
+      }
+    }, 25000);
+
     fetch('https://xinggui-chat.yangmingyi1998128.workers.dev/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -531,23 +541,31 @@ function renderChat() {
         max_tokens: 2000,
         temperature: 0.7
       })
-    }).then(function(res) { return res.json(); })
-      .then(function(data) {
-        var reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-        if (reply) {
-          conversationHistory.push({ role: 'user', content: text });
-          conversationHistory.push({ role: 'assistant', content: reply });
-          var thinkEl = document.getElementById('thinking');
-          if (thinkEl) thinkEl.remove();
-          addMsg('master', reply);
-        }
-      })
-      .catch(function(err) {
-        console.error(err);
+    }).then(function(res) {
+      clearTimeout(timer);
+      if (!res.ok) throw new Error('API error ' + res.status);
+      return res.json();
+    }).then(function(data) {
+      if (done) return;
+      done = true;
+      var reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+      if (reply) {
+        conversationHistory.push({ role: 'user', content: text });
+        conversationHistory.push({ role: 'assistant', content: reply });
         var thinkEl = document.getElementById('thinking');
         if (thinkEl) thinkEl.remove();
-        addMsg('master', '抱歉，服务暂时不可用，请稍后再试。（内测阶段）');
-      });
+        addMsg('master', reply);
+      } else {
+        throw new Error('empty');
+      }
+    }).catch(function(err) {
+      if (done) return;
+      clearTimeout(timer);
+      done = true;
+      var thinkEl = document.getElementById('thinking');
+      if (thinkEl) thinkEl.remove();
+      addMsg('master', '抱歉，服务暂时不可用，请稍后再试。（内测阶段）');
+    });
   }
 
   function addMsg(role, content) {
