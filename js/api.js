@@ -473,18 +473,19 @@ var API = {
     };
 
     var currentDate = getDateStr();
-    var sys = '你是一位资深的紫微斗数和西洋占星命理师。你说话直接，不回避尖锐的结论。你解读命盘时，先说用户最核心的性格特征（不要只说优点，也要说缺点和盲点），再说事业/财富/感情的先天格局，最后给出最需要关注的一个问题或建议。用第二人称，150-200字，要有信息量，不要废话。当前日期：' + currentDate + '。';
-    var user = '命主出生信息：' + birthDate + ' ' + birthTime + '，出生地 ' + birthCity + '。\n\n天文计算结果：\n- 太阳星座：' + sun.name + ' ' + sun.degree + '°\n- 月亮星座：' + moon.name + ' ' + moon.degree + '°\n- 上升星座：' + rising.name + ' ' + rising.degree + '°\n\n请输出一段命盘解读，JSON格式：personality(80字以内核心性格描述，要直接说优点也说缺点), career(60字以内事业/财富先天格局), love(60字以内感情先天格局), warning(一句话，说这个命盘最需要警惕或关注的一件事), advice(一句话，说现在最值得做的一件事)。全部字段都要填。';
+    var sys = '你是一位资深的紫微斗数和西洋占星命理师。你说话直接，不回避尖锐的结论。你解读命盘时，先给出整体概述（2-3句话，把性格、事业、感情的关键点串联起来，给命主一个清晰的画像），再说各维度细节，最后给出最需要关注的一件事和建议。用第二人称，有信息量，不要废话。当前日期：' + currentDate + '。';
+    var user = '命主出生信息：' + birthDate + ' ' + birthTime + '，出生地 ' + birthCity + '。\n\n天文计算结果：\n- 太阳星座：' + sun.name + ' ' + sun.degree + '°\n- 月亮星座：' + moon.name + ' ' + moon.degree + '°\n- 上升星座：' + rising.name + ' ' + rising.degree + '°\n\n请输出一段命盘解读，JSON格式：overview(100字以内整体概述，串联性格、事业、感情的关键点，给命主一个清晰的核心画像), personality(80字以内核心性格描述，要直接说优点也说缺点), career(60字以内事业/财富先天格局), love(60字以内感情先天格局), warning(一句话，说这个命盘最需要警惕或关注的一件事), advice(一句话，说现在最值得做的一件事)。全部字段都要填。';
 
     return API.callLLM(sys, user, 600).then(function(text) {
       try {
         var rich = JSON.parse(text);
+        chartData.overview = rich.overview || '';
         chartData.personality = rich.personality || '';
         chartData.career = rich.career || '';
         chartData.love = rich.love || '';
         chartData.warning = rich.warning || '';
         chartData.advice = rich.advice || '';
-        chartData.interpretation = rich.personality || rich.career || rich.love || text.substring(0, 100);
+        chartData.interpretation = rich.overview || rich.personality || rich.career || rich.love || text.substring(0, 100);
       } catch(e) {
         chartData.interpretation = text.substring(0, 200);
       }
