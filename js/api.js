@@ -306,13 +306,24 @@ var API = {
     var data = API.computeHoroscopeFromContext(zodiac, ctx);
     data._context = ctx;
 
-    // Try LLM for richer text, but don't wait
+    // Try LLM for richer content, but don't block
     API.callLLM(
-      '你是一位专业占星师，根据行星位置数据分析运势，用一两句话简洁回复。用第二人称。',
-      zodiac + ' 今日运势基于：' + API.formatContext(ctx) + '。请输出一两句运势提示（中文）。',
-      150
+      '你是一位说话直接、实战经验深厚的占星师。你说的每句话都要扎到人心里，不废话，不恭维，不两面讨好。你的读者是25-40岁的都市人，他们每天被工作、感情、生活压得喘不过气，他们需要听到真话，不是一堆"今日运势不错"之类的废话。格式：用第二人称，简洁有力。输出JSON，包含字段：rating（一句话今日定性，如"今天适合躺平"、"今天是破局日"、"小心，今天有坑"）, love（爱情方面一句具体提醒或肯定，60字以内）, career（事业/工作一句具体提醒，60字以内）, wealth（财运一句具体提醒，60字以内）, warning（今天最需要警惕的一件事，一句话，40字以内，如果今日确实没什么风险可以写"无特殊预警，顺势而为"）, action（一件今天最值得做的事，一句话，40字以内）。全部字段都要填，不要省略。',
+      zodiac + ' 今日运势。星象数据：' + API.formatContext(ctx) + '。请根据以上真实天文数据，输出一段针对' + zodiac + '今日的综合运势分析。要求：1）直接说人话，不要官话套话；2）有褒有贬，不只说好听的；3）结合真实星象给出分析依据；4）给出可操作的建议。输出JSON格式。',
+      400
     ).then(function(text) {
-      data.tip = text.substring(0, 100);
+      try {
+        var rich = JSON.parse(text);
+        data.rating = rich.rating || data.tip;
+        data.loveTip = rich.love || '';
+        data.careerTip = rich.career || '';
+        data.wealthTip = rich.wealth || '';
+        data.warning = rich.warning || '';
+        data.action = rich.action || '';
+        data.tip = rich.rating || data.tip;
+      } catch(e) {
+        // keep computed defaults
+      }
       try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch(e) {}
     }).catch(function() {});
 
@@ -439,11 +450,21 @@ var API = {
       birthDate: birthDate, birthTime: birthTime, birthCity: birthCity
     };
 
-    var sys = '你是一位专业紫微斗数和西洋占星命理师，根据以下真实天文计算出的命盘数据，用专业但易懂的语言为用户解读。不要编造数据，只基于提供的数据分析。用第二人称。';
-    var user = '命主出生信息：' + birthDate + ' ' + birthTime + '，出生地 ' + birthCity + '。\n\n天文计算结果：\n- 太阳星座：' + sun.name + ' ' + sun.degree + '°\n- 月亮星座：' + moon.name + ' ' + moon.degree + '°\n- 上升星座：' + rising.name + ' ' + rising.degree + '°\n\n请输出一段 100-150 字的命盘解读。';
+    var sys = '你是一位资深的紫微斗数和西洋占星命理师。你说话直接，不回避尖锐的结论。你解读命盘时，先说用户最核心的性格特征（不要只说优点，也要说缺点和盲点），再说事业/财富/感情的先天格局，最后给出最需要关注的一个问题或建议。用第二人称，150-200字，要有信息量，不要废话。';
+    var user = '命主出生信息：' + birthDate + ' ' + birthTime + '，出生地 ' + birthCity + '。\n\n天文计算结果：\n- 太阳星座：' + sun.name + ' ' + sun.degree + '°\n- 月亮星座：' + moon.name + ' ' + moon.degree + '°\n- 上升星座：' + rising.name + ' ' + rising.degree + '°\n\n请输出一段命盘解读，JSON格式：personality(80字以内核心性格描述，要直接说优点也说缺点), career(60字以内事业/财富先天格局), love(60字以内感情先天格局), warning(一句话，说这个命盘最需要警惕或关注的一件事), advice(一句话，说现在最值得做的一件事)。全部字段都要填。';
 
-    return API.callLLM(sys, user, 600).then(function(interpretation) {
-      chartData.interpretation = interpretation;
+    return API.callLLM(sys, user, 600).then(function(text) {
+      try {
+        var rich = JSON.parse(text);
+        chartData.personality = rich.personality || '';
+        chartData.career = rich.career || '';
+        chartData.love = rich.love || '';
+        chartData.warning = rich.warning || '';
+        chartData.advice = rich.advice || '';
+        chartData.interpretation = rich.personality || rich.career || rich.love || text.substring(0, 100);
+      } catch(e) {
+        chartData.interpretation = text.substring(0, 200);
+      }
       return chartData;
     }).catch(function() {
       chartData.interpretation = '命盘解读获取失败，请稍后重试。';
@@ -452,53 +473,53 @@ var API = {
   },
 
   drawTarot: function(mode) {
-    var sys = '你是一位专业塔罗占卜师。请严谨、专业、简洁，用第二人称。';
-    var user = '请为用户抽取三张塔罗牌（过去、现在、未来），牌阵为圣三角。每张牌需要包含：name(牌名，大阿尔卡纳), position(过去/现在/未来), upright(正位含义一句话), reversed(逆位含义一句话), isReversed(true或false，约40%概率逆位)。请以JSON数组格式返回，共3项，只返回JSON。';
+    var sys = '你是一位说话犀利的塔罗占卜师。你不回避坏消息，也不粉饰现实。你的解读要直指人心，让用户感受到牌卡在说他自己的故事。用第二人称，简洁有力。';
+    var user = '请为用户抽取三张塔罗牌（过去、现在、未来），牌阵为圣三角。每张牌需要包含：name(牌名，大阿尔卡纳), position(过去/现在/未来), upright(正位含义，80字以内，要具体，不要套话), reversed(逆位含义，80字以内，要具体，不要套话), isReversed(true或false，约35%概率逆位)。输出JSON数组格式，共3项，只返回JSON，不要任何解释文字。';
     return API.callLLM(sys, user, 800).then(function(text) {
       try {
         var data = JSON.parse(text);
         return Array.isArray(data) ? data : [data];
       } catch(e) {
         return [
-          { name: '愚者', position: '过去', upright: '新的开始，可能性。', reversed: '犹豫，方向不明。', isReversed: false },
-          { name: '魔术师', position: '现在', upright: '创造力，行动力。', reversed: '计划拖延。', isReversed: true },
-          { name: '命运之轮', position: '未来', upright: '转机，好运将至。', reversed: '阻碍，不顺。', isReversed: false }
+          { name: '命运之轮', position: '过去', upright: '过去的关键转折点已发生，命运之轮正在转动。', reversed: '时机未到，或错过了某个重要的转折机会。', isReversed: false },
+          { name: '死神', position: '现在', upright: '某个阶段正在结束，抗拒没有意义，拥抱变化才能重生。', reversed: '你不愿放手的东西正在以更痛苦的方式迫使你放下。', isReversed: true },
+          { name: '高塔', position: '未来', upright: '即将有冲击，但这是打破幻象、重建真实的机会。', reversed: '潜在的危机被拖延或掩盖，没有真正解决问题。', isReversed: false }
         ];
       }
     }).catch(function() {
       return [
-        { name: '愚者', position: '过去', upright: '新的开始，可能性。', reversed: '犹豫，方向不明。', isReversed: false },
-        { name: '魔术师', position: '现在', upright: '创造力，行动力。', reversed: '计划拖延。', isReversed: true },
-        { name: '命运之轮', position: '未来', upright: '转机，好运将至。', reversed: '阻碍，不顺。', isReversed: false }
+        { name: '命运之轮', position: '过去', upright: '过去的关键转折点已发生，命运之轮正在转动。', reversed: '时机未到，或错过了某个重要的转折机会。', isReversed: false },
+        { name: '死神', position: '现在', upright: '某个阶段正在结束，抗拒没有意义，拥抱变化才能重生。', reversed: '你不愿放手的东西正在以更痛苦的方式迫使你放下。', isReversed: true },
+        { name: '高塔', position: '未来', upright: '即将有冲击，但这是打破幻象、重建真实的机会。', reversed: '潜在的危机被拖延或掩盖，没有真正解决问题。', isReversed: false }
       ];
     });
   },
 
   getCompatibility: function(sign1, sign2) {
-    var sys = '你是一位专业星座配对分析师，根据两个星座的性格特质分析配对结果。用专业简洁的语言回复。';
-    var user = '请分析 ' + sign1 + ' 和 ' + sign2 + ' 的星座配对。请以JSON格式返回，字段：score(60-100整数总分), love(0-100整数), communication(0-100整数), trust(0-100整数), strengths(一两句话优势描述), weaknesses(一两句话注意事项)。只返回JSON。';
-    return API.callLLM(sys, user, 400).then(function(text) {
+    var sys = '你是一位说话直接、实战经验深厚的星座配对分析师。你不只说好听的话，也会直接指出两个人之间最可能的冲突点、谁更容易在关系中吃亏、哪一方需要更多包容。用专业但不说教的口吻。';
+    var user = '请深度分析 ' + sign1 + ' 和 ' + sign2 + ' 的星座配对。用JSON格式返回：score(60-98整数总分), love(0-100整数爱情指数), communication(0-100整数沟通指数), trust(0-100整数信任指数), strengths(两句话，说这段关系最核心的1-2个优势，要具体不要套话), weaknesses(两句话，直接说这段关系最需要警惕的问题，要具体不要套话), who更适合(一句话，说明在这段关系中谁相对更占优势或更主动), danger(一句话，说明这段关系最大的潜在风险)。只返回JSON。';
+    return API.callLLM(sys, user, 500).then(function(text) {
       try {
         return JSON.parse(text);
       } catch(e) {
         return { score: 72, love: 75, communication: 70, trust: 68, strengths: '你们有良好的互补性，沟通顺畅。', weaknesses: '在处理冲突时需要多加注意。' };
       }
     }).catch(function() {
-      return { score: 72, love: 75, communication: 70, trust: 68, strengths: '你们有良好的互补性，沟通顺畅。', weaknesses: '在处理冲突时需要多加注意。' };
+      return { score: 72, love: 75, communication: 70, trust: 68, strengths: '你们有良好的互补性，沟通顺畅。', weaknesses: '在处理冲突时需要多加注意。', whoBetter: '双方各有优势，主动权取决于具体情况', danger: '沟通不畅时容易冷战，积压矛盾。' };
     });
   },
 
   drawFortune: function(question) {
-    var sys = '你是一位专业国学求签分析师，用户心诚求签。请用古雅的文言文风格回复。';
-    var user = question ? '用户求签，问题：' + question + '。请以JSON格式返回，字段：level(大吉/中吉/小吉/吉/中平/下平/下下), text(一到两句古文签诗), class(good或bad)。只返回JSON。' : '请赐一根签诗，以JSON格式返回，字段：level(大吉/中吉/小吉/吉/中平/下平/下下), text(一到两句古文签诗), class(good或bad)。只返回JSON。';
-    return API.callLLM(sys, user, 300).then(function(text) {
+    var sys = '你是一位洞察世事的求签解签师。你的签诗要有画面感、有情绪、有余韵，不是那种说了等于没说的废话。解签时你要直接说出用户心里其实已经知道但不愿面对的事。用古雅的文言文风格，但意思要现代人能懂。';
+    var user = question ? '用户心诚求签，问题：' + question + '。请输出一根签诗，JSON格式：level(大吉/中吉/小吉/吉/中平/下平/下下), text(两句古文签诗，每句7字，要有画面感，不要空洞), interpretation(40字以内的签解，说清楚这句签对提问者意味着什么，不要套话), advice(一件事的建议，20字以内，说用户现在最应该做的一件具体的事)。只返回JSON。' : '请赐一根签诗，JSON格式：level(大吉/中吉/小吉/吉/中平/下平/下下), text(两句古文签诗，每句7字，要有画面感，不要空洞), interpretation(40字以内的签解，说清楚这句签意味着什么，不要套话), advice(一件事的建议，20字以内，说用户现在最应该做的一件具体的事)。只返回JSON。';
+    return API.callLLM(sys, user, 400).then(function(text) {
       try {
         return JSON.parse(text);
       } catch(e) {
         return { level: '中吉', text: '事在人为，福由心造。静待时机，方有转机。', class: 'good' };
       }
     }).catch(function() {
-      return { level: '中吉', text: '事在人为，福由心造。静待时机，方有转机。', class: 'good' };
+      return { level: '中平', text: '山高路远，水深流急。事在人为，莫问归期。', interpretation: '事情比想象中复杂，不要急于求成，耐心等待时机。', advice: '停止内耗，专注眼前能做的事。', class: 'mid' };
     });
   },
 
