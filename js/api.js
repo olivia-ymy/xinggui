@@ -3,7 +3,8 @@
  */
 
 var API = {
-  WORKER_URL: 'https://xinggui-chat.yangmingyi1998128.workers.dev/chat',
+  WORKER_URL: 'https://model.imfan.top/v1/chat/completions',
+  API_KEY: 'sk-6gpgNC8L2b2GFebjIeKqnDo5j4zKtWa3Jylv5Pm59GLRApkU',
 
   // ===================== ASTRONOMY ENGINE =====================
 
@@ -259,8 +260,12 @@ var API = {
       }, 25000);
       fetch(API.WORKER_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + API.API_KEY
+        },
         body: JSON.stringify({
+          model: 'MiniMax-M2.7-highspeed',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt }
