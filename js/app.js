@@ -203,14 +203,12 @@ function renderFortuneCard(data) {
 }
 
 function animateFortuneScore(score) {
-  // Score is 2-5 stars, convert to percentage
   const percentage = (score / 5) * 100;
   const circle = document.getElementById('scoreFill');
   const number = document.getElementById('scoreNumber');
 
   if (!circle || !number) return;
 
-  // Circumference = 2 * PI * r = 2 * 3.14159 * 54 ≈ 339.292
   const circumference = 339.292;
   const offset = circumference - (percentage / 100) * circumference;
 
@@ -218,7 +216,6 @@ function animateFortuneScore(score) {
     circle.style.strokeDashoffset = offset;
   }, 100);
 
-  // Animate number
   let current = 0;
   const increment = score / 30;
   const timer = setInterval(() => {
@@ -230,7 +227,6 @@ function animateFortuneScore(score) {
     number.textContent = Math.round(current);
   }, 50);
 
-  // Animate stars
   const stars = document.querySelectorAll('#stars .star');
   stars.forEach((star, i) => {
     setTimeout(() => {
@@ -416,12 +412,10 @@ async function renderTarot() {
     drawBtn.disabled = true;
     drawBtn.textContent = '🃏 洗牌中...';
 
-    // Simulate shuffling animation
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     const cards = await API.drawTarot(currentMode);
 
-    // Render cards and animate flip
     const cardCount = cards.length;
     container.innerHTML = cards.map((card, i) => `
       <div class="tarot-card" data-index="${i}" data-reversed="${card.isReversed}">
@@ -436,7 +430,6 @@ async function renderTarot() {
       </div>
     `).join('');
 
-    // Flip cards one by one
     const cardElements = container.querySelectorAll('.tarot-card');
     for (let i = 0; i < cardElements.length; i++) {
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -447,7 +440,6 @@ async function renderTarot() {
       card.classList.add('flipped');
     }
 
-    // Show reading
     await new Promise(resolve => setTimeout(resolve, cardCount * 500 + 300));
 
     if (currentMode === 'three') {
@@ -676,7 +668,6 @@ async function renderFortune() {
     instruction.textContent = '诚心祈求中...';
     bamboo.classList.add('shaking');
 
-    // Shake for 2 seconds
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     bamboo.classList.remove('shaking');
@@ -709,7 +700,6 @@ async function renderFortune() {
 async function renderFate() {
   const app = document.getElementById('app');
 
-  // Check if already verified
   const isVerified = sessionStorage.getItem('fate_verified');
 
   if (!isVerified) {
@@ -742,7 +732,6 @@ async function renderFate() {
       </div>
     `;
 
-    // Add gate styles if not present
     addFateGateStyles();
 
     document.getElementById('fateInviteBtn').addEventListener('click', () => {
@@ -818,7 +807,6 @@ async function renderFate() {
 
   addFateChatStyles();
 
-  // State
   let userProfile = {
     birthDate: null,
     birthTime: null,
@@ -830,43 +818,36 @@ async function renderFate() {
   let conversationHistory = [
     {
       role: 'system',
-      content: `你现在是一位资深的国学易经术数领域专家，综合使用三合紫微、飞星紫微、河洛紫微、禄马四化等各流派紫微的分析技法。对盘十二宫星曜分布、限流叠宫和各宫位间的飞宫四化进行细致分析，进而对命主的健康、学业、事业、财运、人际关系、婚姻和感情等各个方面进行全面分析和总结。关键事件需给出发生的时间范围，吉凶属性，事件对命主的影响程度等信息，并结合命主的自身特点给出针对性的解决方案和建议。另外，命盘信息里附带了十二个大限共一百二十个流年的信息，请对前八个大限的所有流年进行分析，给出每一年需要关注的重大事件和注意事项。你先设置好自身角色，然后向用户提问个人信息，直至你认为可以给命主进行推演。此外，你也精通西方星座和占星术和塔罗牌，可以用生成塔罗牌进行互动占卜。
+      content: `你现在是一位资深的国学易经术数领域专家，综合使用三合紫微、飞星紫微、河洛紫微、禄马四化等各流派紫微的分析技法。对盘十二宫星曜分布、限流叠宫和各宫位间的飞宫四化进行细致分析，进而对命主的健康、学业、事业、财运、人际关系、婚姻和感情等各个方面进行全面分析和总结。关键事件需给出发生的时间范围，吉凶属性，事件对命主的影响程度等信息，并结合命主的自身特点给出针对性的解决方案和建议。另外，命盘信息里附带了十二个大限共一百二十个流年的信息，请对前八个的大限的所有流年进行分析，给出每一年需要关注的重大事件和注意事项。你先设置好自身角色，然后向用户提问个人信息，直至你认为可以给命主进行推演。此外，你也精通西方星座和占星术和塔罗牌，可以用生成塔罗牌进行互动占卜。
 
 重要：你是对话形式的算命先生，每次回复控制在合理长度，用温暖专业的语气，像一个真实的算命先生。不要一上来就给完整分析，要先收集信息。`
     }
   ];
 
-  // DOM refs
   const messagesContainer = document.getElementById('fateMessages');
   const input = document.getElementById('fateInput');
   const sendBtn = document.getElementById('fateSendBtn');
   const thinkingDiv = document.getElementById('fateThinking');
 
-  // Auto-resize textarea
   input.addEventListener('input', () => {
     input.style.height = 'auto';
     input.style.height = Math.min(input.scrollHeight, 150) + 'px';
   });
 
-  // Send message
   async function sendMessage() {
     const text = input.value.trim();
     if (!text) return;
 
-    // Add user message
     addMessage('user', text);
     input.value = '';
     input.style.height = 'auto';
 
-    // Show thinking
     thinkingDiv.classList.remove('hidden');
 
-    // Build context from user profile
     let contextHint = '';
     if (userProfile.birthDate && userProfile.birthTime && userProfile.birthPlace && userProfile.gender) {
       contextHint = `\n\n用户信息已收集：\n- 出生日期：${userProfile.birthDate}\n- 出生时间：${userProfile.birthTime}\n- 出生地点：${userProfile.birthPlace}\n- 性别：${userProfile.gender}\n\n如果信息足够，请开始进行命盘分析。`;
     } else {
-      // Extract what we have
       const needed = [];
       if (!userProfile.birthDate) needed.push('出生日期');
       if (!userProfile.birthTime) needed.push('出生时间');
@@ -875,7 +856,6 @@ async function renderFate() {
       contextHint = `\n\n还在收集的信息：${needed.join('、')}`;
     }
 
-    // Call LLM (mocked for now)
     const reply = await callLLM(text, contextHint);
 
     thinkingDiv.classList.add('hidden');
@@ -890,7 +870,6 @@ async function renderFate() {
     }
   });
 
-  // Exit button
   document.getElementById('fateExitBtn').addEventListener('click', () => {
     if (confirm('确定退出吗？重新进入需要再次验证邀请码。')) {
       sessionStorage.removeItem('fate_verified');
@@ -898,9 +877,7 @@ async function renderFate() {
     }
   });
 
-  // Parse user message to collect profile info
   function parseUserMessage(text) {
-    // Date patterns
     const datePatterns = [
       /(\d{4}[年\-]\d{1,2}[月\-]\d{1,2}[日]?)/,
       /(\d{4})\.(\d{1,2})\.(\d{1,2})/,
@@ -910,26 +887,22 @@ async function renderFate() {
       const m = text.match(p);
       if (m) {
         let dateStr = m[1].replace(/[年\-月日]/g, '-').replace(/-$/, '');
-        // Normalize
         const parts = dateStr.split('-');
         if (parts[0].length === 2) parts.unshift('19');
         userProfile.birthDate = parts.map((v, i) => i === 0 ? v : v.padStart(2, '0')).join('-');
       }
     }
 
-    // Time pattern
     const timeMatch = text.match(/(\d{1,2})[点时:](\d{1,2})/);
     if (timeMatch) {
       userProfile.birthTime = `${timeMatch[1].padStart(2,'0')}:${timeMatch[2].padStart(2,'0')}`;
     }
 
-    // Place patterns
     const placeMatch = text.match(/(?:出生地|地点|在哪|来自)[：:\s]*(.+?)[，,\n]|$/);
     if (placeMatch && placeMatch[1]) {
       userProfile.birthPlace = placeMatch[1].trim();
     }
-    // Also check for city names directly
-    const cities = ['北京', '上海', '广州', '深圳', '成都', '杭州', '武汉', '西安', '南京', '重庆', '天津', '苏州', '长沙', '郑州', '济南', '青岛', '沈阳', '大连', '厦门', '福州', '珠海', '东莞', '佛山', '中山', '江门', '惠州', '汕头', '湛江', '南宁', '桂林', '昆明', '贵阳', '拉萨', '兰州', '西宁', '银川', '乌鲁木齐', '呼和浩特', '哈尔滨', '长春', '石家庄', '太原', '南昌', '合肥', '福州', '海口', '香港', '澳门', '台湾'];
+    const cities = ['北京', '上海', '广州', '深圳', '成都', '杭州', '武汉', '西安', '南京', '重庆', '天津', '苏州', '长沙', '郑州', '济南', '青岛', '沈阳', '大连', '厦门', '福州', '珠海', '东莞', '佛山', '中山', '江门', '惠州', '汕头', '湛江', '南宁', '桂林', '昆明', '贵阳', '拉萨', '兰州', '西宁', '银川', '乌鲁木齐', '呼和浩特', '哈尔滨', '长春', '石家庄', '太原', '南昌', '合肥', '海口', '香港', '澳门', '台湾'];
     for (const city of cities) {
       if (text.includes(city) && !userProfile.birthPlace) {
         userProfile.birthPlace = city;
@@ -937,7 +910,6 @@ async function renderFate() {
       }
     }
 
-    // Gender
     if (text.includes('男') || text.includes('male') || text.includes('Male')) {
       userProfile.gender = '男';
     } else if (text.includes('女') || text.includes('female') || text.includes('Female')) {
@@ -945,7 +917,6 @@ async function renderFate() {
     }
   }
 
-  // Add message to DOM
   function addMessage(role, content) {
     const div = document.createElement('div');
     div.className = `fate-message fate-message-${role}`;
@@ -965,22 +936,18 @@ async function renderFate() {
     messagesContainer.appendChild(div);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-    // Store in history
     conversationHistory.push({ role: role === 'master' ? 'assistant' : 'user', content });
   }
 
-  // LLM call via MiniMax API
   async function callLLM(userMessage, contextHint) {
     parseUserMessage(userMessage);
 
-    // Build messages for API
     const systemPrompt = conversationHistory.find(m => m.role === 'system')?.content || '';
     const recentMessages = conversationHistory.slice(-10).map(m => ({
       role: m.role === 'assistant' ? 'assistant' : 'user',
       content: m.content
     }));
 
-    // Append context hint
     const enhancedUserMessage = userMessage + (contextHint || '');
 
     try {
@@ -1008,13 +975,11 @@ async function renderFate() {
       return data.choices?.[0]?.message?.content || '抱歉，发生了错误，请重试。';
     } catch (error) {
       console.error('LLM API call failed:', error);
-      // Fallback to mock on error
       return generateMockResponse(userMessage, contextHint);
     }
   }
 
   function generateMockResponse(userMessage, contextHint) {
-    // Simple state machine based on what's been collected
     const msgs = conversationHistory.length;
 
     if (!userProfile.birthDate) {
@@ -1030,12 +995,10 @@ async function renderFate() {
       return `了解了，请问您的性别是？`;
     }
 
-    // All info collected - this is where real LLM would give analysis
     if (msgs < 12) {
       return `信息已齐全，正在为您排盘分析...\n\n（当前为内测模拟模式，完整分析功能即将上线。输入"分析"可查看模拟结果。）`;
     }
 
-    // Demo analysis when user says "分析"
     if (userMessage.includes('分析')) {
       return `【命盘分析 — 模拟结果】
 
@@ -1067,7 +1030,6 @@ async function renderFate() {
   }
 }
 
-// ===== Fate Page Styles =====
 function addFateGateStyles() {
   if (document.getElementById('fate-gate-styles')) return;
   const style = document.createElement('style');
