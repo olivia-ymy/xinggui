@@ -74,6 +74,29 @@ function renderHome() {
       API.getHoroscope(zodiac, new Date().toISOString().split('T')[0]).then(function(data) {
         var stars = '★★★★★'.substring(5 - Math.round(data.score));
         var scoreColor = data.score >= 4.5 ? 'var(--accent-gold)' : data.score >= 4 ? 'var(--accent-purple)' : 'var(--text-muted)';
+
+        // Build real astro display
+        var astroHtml = '';
+        if (data._context) {
+          var ctx = data._context;
+          var planetList = ctx.planetsInSign.map(function(p) {
+            return p.name + '(' + p.sign.name + p.sign.degree + '°)';
+          });
+          var aspectList = ctx.aspects.map(function(a) {
+            return a.p1 + ' ' + a.symbol + ' ' + a.p2;
+          });
+          astroHtml = '<div style="margin-top:16px;padding:12px;background:rgba(139,92,246,0.05);border-radius:8px;font-size:0.8rem;color:var(--text-muted);line-height:1.8;">' +
+            '<div style="margin-bottom:6px;color:var(--accent-cyan);font-weight:600;">✧ 今日星象</div>' +
+            '<div>太阳所在：' + ctx.sunSign + ' &nbsp;|&nbsp; 月亮所在：' + ctx.moonSign + '</div>';
+          if (planetList.length > 0) {
+            astroHtml += '<div>进入' + zodiac + '的行星：' + planetList.join('、') + '</div>';
+          }
+          if (aspectList.length > 0) {
+            astroHtml += '<div>相关相位：' + aspectList.join(' &nbsp;') + '</div>';
+          }
+          astroHtml += '</div>';
+        }
+
         resultDiv.innerHTML = '<div class="card" style="padding:24px;">' +
           '<div style="text-align:center;margin-bottom:16px;">' +
           '<div style="font-size:2rem;margin-bottom:4px;">' + ZODIACS.find(function(z){return z.name===zodiac;}).icon + '</div>' +
@@ -95,7 +118,8 @@ function renderHome() {
           '<span style="padding:4px 10px;background:var(--bg-tertiary);border-radius:20px;color:var(--text-secondary);">幸运数：<strong style="color:var(--accent-cyan);">' + data.luckyNumber + '</strong></span>' +
           '<span style="padding:4px 10px;background:var(--bg-tertiary);border-radius:20px;color:var(--text-secondary);">幸运方向：<strong style="color:var(--accent-purple);">' + data.luckyDirection + '</strong></span></div>' +
           '<div style="padding:12px;background:var(--bg-tertiary);border-radius:8px;text-align:center;">' +
-          '<p style="color:var(--text-secondary);line-height:1.6;font-size:0.9rem;">' + data.tip + '</p></div></div>';
+          '<p style="color:var(--text-secondary);line-height:1.6;font-size:0.9rem;">' + data.tip + '</p></div>' +
+          astroHtml + '</div>';
       }).catch(function(err) {
         resultDiv.innerHTML = '<div class="card" style="padding:30px;text-align:center;"><p style="color:var(--danger);">⚠️ 服务响应超时，请检查网络后重试</p><p style="color:var(--text-muted);font-size:0.85rem;margin-top:8px;">（或稍等几秒后重试，Worker 冷启动需要一点时间）</p></div>';
       });
