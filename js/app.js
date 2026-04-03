@@ -248,6 +248,9 @@ function renderChart() {
         '<div style="font-size:0.8rem;color:var(--text-muted);">上升星座</div>' +
         '<div style="font-size:1.2rem;color:var(--accent-gold);font-weight:600;">' + data.rising + '</div>' +
         '<div style="font-size:0.75rem;color:var(--text-muted);">' + (data.risingDegree || '') + '°</div></div></div>' +
+        (data.overview ? '<div style="margin-bottom:16px;padding:14px 16px;background:linear-gradient(135deg,rgba(139,92,246,0.08),rgba(34,211,238,0.06));border-radius:10px;border-left:4px solid var(--accent-purple);">' +
+        '<div style="color:var(--accent-cyan);font-size:0.8rem;font-weight:600;margin-bottom:6px;">✦ 整体解读</div>' +
+        '<p style="color:var(--text-primary);font-size:0.95rem;line-height:1.7;">' + data.overview + '</p></div>' : '') +
         (data.interpretation ? '<div id="chartInterpretation" style="margin-top:16px;padding:16px;background:var(--bg-primary);border-radius:8px;border-left:3px solid var(--accent-purple);">' +
         (data.personality ? '<div style="margin-bottom:12px;"><span style="color:var(--accent-cyan);font-weight:600;">✦ 性格：</span><span style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6;">' + data.personality + '</span></div>' : '') +
         (data.career ? '<div style="margin-bottom:12px;"><span style="color:var(--accent-gold);font-weight:600;">💼 事业：</span><span style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6;">' + data.career + '</span></div>' : '') +
