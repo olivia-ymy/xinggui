@@ -1,0 +1,51 @@
+:root {
+  /* Colors */
+  --bg-primary: #0a0d14;
+  --bg-secondary: #12182a;
+  --bg-tertiary: #1a2140;
+  --accent-purple: #8b5cf6;
+  --accent-purple-dim: #7c3aed;
+  --accent-gold: #f59e0b;
+  --accent-cyan: #22d3ee;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --success: #22c55e;
+
+  /* Typography */
+  --font-display: 'Cinzel', serif;
+  --font-body: 'Noto Sans SC', sans-serif;
+  --font-mono: 'Fira Code', monospace;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+
+  /* Borders */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-glow-purple: 0 0 20px rgba(139, 92, 246, 0.3);
+  --shadow-glow-gold: 0 0 20px rgba(245, 158, 11, 0.3);
+  --shadow-glow-cyan: 0 0 20px rgba(34, 211, 238, 0.3);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 300ms ease;
+  --transition-slow: 500ms ease;
+
+  /* Layout */
+  --max-width: 1200px;
+  --header-height: 64px;
+}

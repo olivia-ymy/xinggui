@@ -1,0 +1,5 @@
+name = "xinggui-chat"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+account_id = "c42cf73bb9d18acaa52817caa10ceea2"
+# MINIMAX_API_KEY is set via secret, not here
