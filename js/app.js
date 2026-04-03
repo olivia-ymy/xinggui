@@ -69,11 +69,36 @@ function renderHome() {
       item.classList.add('selected');
       var zodiac = item.dataset.zodiac;
       var resultDiv = document.getElementById('homeFortuneResult');
-      resultDiv.innerHTML = '<div class="card"><p style="text-align:center;color:var(--text-muted);">正在加载...</p></div>';
-      // Simple mock response for now
-      setTimeout(function() {
-        resultDiv.innerHTML = '<div class="card"><h3 style="color:var(--accent-purple);text-align:center;">' + zodiac + ' 今日运势</h3><p style="color:var(--text-secondary);text-align:center;">综合运势★★★☆☆</p><p style="color:var(--text-muted);font-size:0.9rem;text-align:center;">完整功能内测中...</p></div>';
-      }, 500);
+      resultDiv.innerHTML = '<div class="card" style="padding:30px;text-align:center;"><p style="color:var(--text-muted);">正在读取今日运势...</p></div>';
+
+      API.getHoroscope(zodiac, new Date().toISOString().split('T')[0]).then(function(data) {
+        var stars = '★★★★★'.substring(5 - Math.round(data.score));
+        var scoreColor = data.score >= 4.5 ? 'var(--accent-gold)' : data.score >= 4 ? 'var(--accent-purple)' : 'var(--text-muted)';
+        resultDiv.innerHTML = '<div class="card" style="padding:24px;">' +
+          '<div style="text-align:center;margin-bottom:16px;">' +
+          '<div style="font-size:2rem;margin-bottom:4px;">' + ZODIACS.find(function(z){return z.name===zodiac;}).icon + '</div>' +
+          '<h3 style="color:var(--accent-purple);">' + zodiac + ' 今日运势</h3>' +
+          '<div style="font-size:1.2rem;color:' + scoreColor + ';margin-top:4px;">' + stars + '</div>' +
+          '<div style="font-size:0.85rem;color:var(--text-muted);margin-top:4px;">综合指数 ' + data.score + '/5</div></div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">' +
+          '<div style="text-align:center;padding:10px;background:var(--bg-tertiary);border-radius:6px;">' +
+          '<div style="font-size:0.75rem;color:var(--text-muted);">爱情</div>' +
+          '<div style="color:var(--danger);font-weight:600;">' + data.love + '%</div></div>' +
+          '<div style="text-align:center;padding:10px;background:var(--bg-tertiary);border-radius:6px;">' +
+          '<div style="font-size:0.75rem;color:var(--text-muted);">事业</div>' +
+          '<div style="color:var(--accent-cyan);font-weight:600;">' + data.career + '%</div></div>' +
+          '<div style="text-align:center;padding:10px;background:var(--bg-tertiary);border-radius:6px;">' +
+          '<div style="font-size:0.75rem;color:var(--text-muted);">财运</div>' +
+          '<div style="color:var(--accent-gold);font-weight:600;">' + data.wealth + '%</div></div></div>' +
+          '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;font-size:0.85rem;">' +
+          '<span style="padding:4px 10px;background:var(--bg-tertiary);border-radius:20px;color:var(--text-secondary);">幸运色：<strong style="color:var(--accent-gold);">' + data.luckyColor + '</strong></span>' +
+          '<span style="padding:4px 10px;background:var(--bg-tertiary);border-radius:20px;color:var(--text-secondary);">幸运数：<strong style="color:var(--accent-cyan);">' + data.luckyNumber + '</strong></span>' +
+          '<span style="padding:4px 10px;background:var(--bg-tertiary);border-radius:20px;color:var(--text-secondary);">幸运方向：<strong style="color:var(--accent-purple);">' + data.luckyDirection + '</strong></span></div>' +
+          '<div style="padding:12px;background:var(--bg-tertiary);border-radius:8px;text-align:center;">' +
+          '<p style="color:var(--text-secondary);line-height:1.6;font-size:0.9rem;">' + data.tip + '</p></div></div>';
+      }).catch(function() {
+        resultDiv.innerHTML = '<div class="card" style="padding:30px;text-align:center;"><p style="color:var(--danger);">读取失败，请稍后重试</p></div>';
+      });
     });
   });
 }
