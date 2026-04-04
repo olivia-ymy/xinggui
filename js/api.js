@@ -65,8 +65,9 @@ function getDateStr() {
 
 
 var API = {
-  WORKER_URL: 'https://model.imfan.top/v1/chat/completions',
-  API_KEY: 'sk-6gpgNC8L2b2GFebjIeKqnDo5j4zKtWa3Jylv5Pm59GLRApkU',
+  // LLM calls go through Cloudflare Worker (key hidden in Worker secrets)
+  WORKER_URL: 'https://xinggui-chat.yangmingyi1998128.workers.dev',
+  API_KEY: null, // no longer exposed in frontend
 
   // ===================== ASTRONOMY ENGINE =====================
 
@@ -323,11 +324,9 @@ var API = {
       fetch(API.WORKER_URL, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + API.API_KEY
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'MiniMax-M2.7-highspeed',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt }
