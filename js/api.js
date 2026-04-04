@@ -596,20 +596,130 @@ var API = {
     });
   },
 
+
+
+  // ===================== FORTUNE SLIPS (100) =====================
+  FORTUNE_SLIPS: [
+    {level:'大吉',text:'春雷一震万物苏，枯木逢春吐新芽',interp:'运势如春雷般苏醒，之前停滞的事开始有了转机。',advice:'把握时机，主动出击'},
+    {level:'大吉',text:'宝镜高悬照九州，光明璀璨入琼楼',interp:'心明眼亮，目标明确，前路清晰可见。',advice:'乘胜追击，莫失良机'},
+    {level:'大吉',text:'龙腾四海展宏图，鹏程万里冲天途',interp:'有贵人相助，正是大展身手的时候。',advice:'勇往直前，勿犹豫'},
+    {level:'大吉',text:'花开富贵满堂春，枝繁叶茂果自成',interp:'付出开始有回报，一切水到渠成。',advice:'继续耕耘，静待丰收'},
+    {level:'大吉',text:'珠玉在侧映光辉，良缘天定自相随',interp:'有意外的好机缘，或遇命中贵人。',advice:'广结善缘，多向外走'},
+    {level:'中吉',text:'行船走马三分命，顺风扬帆待此时',interp:'时机已到，但还差最后一步。',advice:'耐心等待，蓄势待发'},
+    {level:'中吉',text:'山重水复疑无路，柳暗花明又一村',interp:'看似走进死胡同，转角有惊喜。',advice:'别放弃，再坚持一下'},
+    {level:'中吉',text:'风吹云散见天日，枯木逢春再发芽',interp:'阴霾即将过去，曙光就在眼前。',advice:'咬牙挺过这一关'},
+    {level:'中吉',text:'十年寒窗无人问，一朝成名天下知',interp:'积累已久的努力即将被看见。',advice:'继续沉淀，不要急'},
+    {level:'中吉',text:'良辰美景奈何天，赏心乐事在眼前',interp:'眼前一切刚刚好，珍惜当下。',advice:'活在当下，享受过程'},
+    {level:'中吉',text:'青灯黄卷伴书生，金榜题名会有时',interp:'学业或事业有进步，但还需努力。',advice:'加倍用功，莫松懈'},
+    {level:'中吉',text:'风生水起运当兴，正是男儿立志时',interp:'整体运势上升，适合订立新目标。',advice:'抓住机遇，乘势而为'},
+    {level:'中吉',text:'春雨润物细无声，花开时节又逢君',interp:'有悄然发生的好事，或偶遇故人。',advice:'留心身边的变化'},
+    {level:'中吉',text:'孤帆远影碧空尽，唯见长江天际流',interp:'某个阶段即将结束，新篇章将开始。',advice:'放下过去，迎接新生'},
+    {level:'中吉',text:'采得百花成蜜后，为谁辛苦为谁甜',interp:'付出很多但收获不归自己，需调整策略。',advice:'别只顾埋头干活'},
+    {level:'小吉',text:'路遥知马力不足，日久见人心深浅',interp:'有人在考验你，也有人在观察你。',advice:'保持本色，不卑不亢'},
+    {level:'小吉',text:'月有阴晴圆有缺，此事古难全',interp:'世间难有完美事，需接受不圆满。',advice:'放下执念，接受现实'},
+    {level:'小吉',text:'风起于青萍之末，浪成于微澜之间',interp:'大变动前的小征兆，要见微知著。',advice:'留意细节信号'},
+    {level:'小吉',text:'寒潭映月分外清，孤雁哀鸣两三声',interp:'表面平静，内里暗流涌动。',advice:'谨慎行事，防患未然'},
+    {level:'小吉',text:'山雨欲来风满楼，黑云压城城欲摧',interp:'风暴将至，要有心理准备。',advice:'提前布局，以待时机'},
+    {level:'小吉',text:'蝉噪林逾静，鸟鸣山更幽',interp:'喧闹中的寂静，反而更需警醒。',advice:'别被表面平静迷惑'},
+    {level:'小吉',text:'年年岁岁花相似，岁岁年年人不同',interp:'事过境迁，人已非昨。',advice:'放下过去向前看'},
+    {level:'小吉',text:'无可奈何花落去，似曾相识燕归来',interp:'失去的同时也有回归，循环往复。',advice:'随缘而行'},
+    {level:'小吉',text:'夕阳无限好，只是近黄昏',interp:'美景将尽，且行且珍惜。',advice:'抓紧时间，莫负时光'},
+    {level:'小吉',text:'纸上得来终觉浅，绝知此事要躬行',interp:'理论够了，缺的是实践。',advice:'走出舒适区，去做'},
+    {level:'吉',text:'平步青云路坦荡，一帆风顺入明堂',interp:'眼前路比较顺，但别得意忘形。',advice:'稳扎稳打，保持清醒'},
+    {level:'吉',text:'水深水浅东西涧，云去云来远近山',interp:'情况有些模糊，需要更多信息。',advice:'多观察，慎行动'},
+    {level:'吉',text:'秤砣虽小压千斤，螺丝无悔锁乾坤',interp:'你小看了自己的影响力。',advice:'相信自己的价值'},
+    {level:'吉',text:'莫愁前路无知己，天下谁人不识君',interp:'你的人脉即将发挥作用。',advice:'多联系老朋友'},
+    {level:'吉',text:'两岸猿声啼不住，轻舟已过万重山',interp:'已经过了最难的坎，前路渐宽。',advice:'乘势继续前进'},
+    {level:'吉',text:'问渠那得清如许，为有源头活水来',interp:'需要新来源才能保持活力。',advice:'开拓新渠道'},
+    {level:'吉',text:'人生得意须尽欢，莫使金樽空对月',interp:'该放松时且放松，别太紧绷。',advice:'给自己放个假'},
+    {level:'吉',text:'醉翁之意不在酒，山高水长在心头',interp:'你的真实意图别人未必理解。',advice:'想清楚再说出口'},
+    {level:'吉',text:'桃花潭水深千尺，不及汪伦送我情',interp:'有人默默关心你，珍惜这份情。',advice:'回应那些在乎你的人'},
+    {level:'中平',text:'风平浪静海面宽，前路漫漫待何时',interp:'表面平静，实则迷茫。',advice:'停下来想清楚方向'},
+    {level:'中平',text:'水能载舟亦覆舟，谨慎驶得万年船',interp:'成也萧何败也萧何，小心驶得万年船。',advice:'凡事三思而后行'},
+    {level:'中平',text:'机关算尽太聪明，反误了卿卿性命',interp:'想太多了，有时候简单直接更好。',advice:'少算计，多真诚'},
+    {level:'中平',text:'山高路远步难行，水深流急舟难渡',interp:'阻碍很大，时机未到。',advice:'养精蓄锐，等待时机'},
+    {level:'中平',text:'人心不足蛇吞象，贪心不足吃月亮',interp:'欲望太多，反而会失去更多。',advice:'知足常乐'},
+    {level:'中平',text:'画龙画虎难画骨，知人知面不知心',interp:'人心难测，不要太相信表面。',advice:'多留个心眼'},
+    {level:'中平',text:'树大招风风撼树，人为名高名丧人',interp:'太出头容易招麻烦，低调些。',advice:'收敛锋芒'},
+    {level:'中平',text:'有心栽花花不开，无心插柳柳成荫',interp:'刻意追求的得不到，无意中的反而成。',advice:'放松心态，顺其自然'},
+    {level:'中平',text:'山穷水尽疑无路，柳暗花明又一村',interp:'绝境中藏着转机。',advice:'别放弃最后一下'},
+    {level:'中平',text:'长江后浪推前浪，浮世新人换旧人',interp:'新事物正在取代旧事物，适应变化。',advice:'与时俱进'},
+    {level:'中平',text:'人面不知何处去，桃花依旧笑春风',interp:'有些人已经走了，但风景依旧。',advice:'向前看'},
+    {level:'中平',text:'万事俱备只欠东风，纵里寻她千百度',interp:'什么都准备好了，就差一个契机。',advice:'主动制造机会'},
+    {level:'中平',text:'屋漏偏逢连夜雨，船迟又遇打头风',interp:'祸不单行，要稳住。',advice:'咬牙撑住，别崩'},
+    {level:'中平',text:'时运不济命途多舛，冯唐易老李广难封',interp:'时机不对，强求无益。',advice:'蛰伏等待'},
+    {level:'下平',text:'冰冻三尺非一日之寒，水滴石穿非一日之功',interp:'问题积累已久，不可能一日解决。',advice:'有耐心，慢慢来'},
+    {level:'下平',text:'明枪易躲暗箭难防，背后小人需提防',interp:'有人在暗中捣鬼，谨慎行事。',advice:'注意身边的人'},
+    {level:'下平',text:'春宵一刻值千金，花有清香月有阴',interp:'时光短暂，不要浪费在无意义的事上。',advice:'珍惜时间'},
+    {level:'下平',text:'青山遮不住，毕竟东流去',interp:'大势已去，逆天而行无意义。',advice:'审时度势'},
+    {level:'下平',text:'抽刀断水水更流，举杯消愁愁更愁',interp:'用错误的方式解决问题，只会更糟。',advice:'停止内耗'},
+    {level:'下平',text:'出师未捷身先死，长使英雄泪满襟',interp:'壮志未酬，但这就是人生。',advice:'总结经验，再来'},
+    {level:'下平',text:'同行之间多嫉妒，木秀于林风必摧',interp:'你太优秀了，招人眼红。',advice:'低调行事'},
+    {level:'下平',text:'运去黄金失色，时来铁也生光',interp:'运势低迷，但要相信会回来。',advice:'保存实力'},
+    {level:'下平',text:'门前冷落车马稀，老大嫁作商人妇',interp:'繁华退去，回归平淡。',advice:'接受现实'},
+    {level:'下平',text:'曾经沧海难为水，除却巫山不是云',interp:'见过了最好的，就难再满足。',advice:'放下过去'},
+    {level:'下平',text:'夕阳西下几时回，无可奈何花落去',interp:'逝去的不会再回来。',advice:'珍惜眼前'},
+    {level:'下下',text:'屋漏偏逢连夜雨，破船又遇打头风',interp:'屋漏偏遭连夜雨，极度不顺。',advice:'止损出局'},
+    {level:'下下',text:'鱼跃龙门过不得，浅滩困住强龙手',interp:'实力不够，时机不到。',advice:'韬光养晦'},
+    {level:'下下',text:'明珠暗投贾人腹，碧玉蒙尘在暗室',interp:'才华被埋没，没人看到你的价值。',advice:'主动展示自己'},
+    {level:'下下',text:'斩蛇不成反被咬，赔了夫人又折兵',interp:'行动失败，损失惨重。',advice:'慎动，考虑清楚'},
+    {level:'下下',text:'船漏又遇顶头风，祸不单行至今日',interp:'祸事连连，要高度警惕。',advice:'以退为进'},
+    {level:'下下',text:'飞蛾扑火甘如饴，玉石俱焚悔已迟',interp:'明知危险还要往前冲，必遭祸患。',advice:'及时止损'},
+    {level:'下下',text:'盲人骑瞎马，夜半临深渊',interp:'完全在盲目行动，危险之极。',advice:'立即停下'},
+    {level:'下下',text:'一场欢喜忽悲辛，叹人世终难定',interp:'欢喜变悲辛，世事无常。',advice:'保持平常心'},
+    {level:'下下',text:'时来运转总成空，梦里不知身是客',interp:'看似有机会，实则一场空。',advice:'不要抱幻想'},
+    {level:'下下',text:'浮云蔽日终有散，繁华散尽是苍凉',interp:'好景不长，要为以后打算。',advice:'留有余地'},
+    {level:'下下',text:'当局者迷旁观者清，固执己见恐招损',interp:'你陷进去了，听不进意见。',advice:'听听别人怎么说'},
+    {level:'大吉',text:'凤鸣朝阳冲霄汉，龙腾盛世照乾坤',interp:'紫气东来，将有大事发生。',advice:'做好准备迎接机遇'},
+    {level:'大吉',text:'三顾频繁天下计，两朝开济老臣心',interp:'有贵人三顾茅庐，或得老臣相助。',advice:'广结善缘'},
+    {level:'大吉',text:'春风得意马蹄疾，一日看尽长安花',interp:'正是踌躇满志之时。',advice:'趁势而上'},
+    {level:'大吉',text:'会当凌绝顶，一览众山小',interp:'站得高看得远，目标即将达成。',advice:'坚持到底'},
+    {level:'大吉',text:'长风破浪会有时，直挂云帆济沧海',interp:'必有突破困境的那一天。',advice:'保持信心'},
+    {level:'大吉',text:'千淘万漉虽辛苦，吹尽狂沙始到金',interinterp:'历经磨炼，终得真金。',advice:'咬牙坚持'},
+    {level:'大吉',text:'桃花流水窅然去，别有天地非人间',interp:'别有洞天，将进入新境界。',advice:'拓展新方向'},
+    {level:'中吉',text:'两句三年得，一吟双泪流',interp:'下了一番苦功，终得佳句。',advice:'继续精进'},
+    {level:'中吉',text:'海阔凭鱼跃，天高任鸟飞',interp:'舞台很大，尽情施展。',advice:'放手去做'},
+    {level:'中吉',text:'欲把西湖比西子，淡妆浓抹总相宜',interp:'恰到好处，一切刚刚好。',advice:'保持现状'},
+    {level:'中吉',text:'明月松间照，清泉石上流',interp:'内心平静，万物皆美。',advice:'回归本心'},
+    {level:'中吉',text:'大漠孤烟直，长河落日圆',interp:'孤独但坚定，这是你的路。',advice:'享受孤独'},
+    {level:'中吉',text:'空山不见人，但闻人语响',interp:'表面空旷，实则有人支持。',advice:'不孤单'},
+    {level:'中吉',text:'返景入深林，复照青苔上',interp:'光亮终究会照进来。',advice:'耐心等待'},
+    {level:'小吉',text:'松下问童子，言师采药去',interp:'要找的人不在，但会有线索。',advice:'继续探寻'},
+    {level:'小吉',text:'只在此山中，云深不知处',interp:'目标模糊，需要更细心寻找。',advice:'多下功夫'},
+    {level:'小吉',text:'借问酒家何处有，牧童遥指杏花村',interp:'答案就在前方不远处。',advice:'再坚持一步'},
+    {level:'小吉',text:'千里黄云白日曛，北风吹雁雪纷纷',interp:'前路艰难，但有人同行。',advice:'找同伴'},
+    {level:'小吉',text:'莫愁前路无知己，天下谁人不识君',interp:'不必担心孤单，知音自会来。',advice:'真诚待人'},
+    {level:'小吉',text:'林花谢了春红，太匆匆',interp:'美好总是短暂的。',advice:'珍惜当下'}
+  ],
+
+  // Pick a random slip
+  pickRandomSlip: function() {
+    var slips = API.FORTUNE_SLIPS;
+    return slips[Math.floor(Math.random() * slips.length)];
+  },
+
   drawFortune: function(question) {
     var currentDate = getDateStr();
-    var sys = '你是一位洞察世事的求签解签师。你的签诗要有画面感、有情绪、有余韵，不是那种说了等于没说的废话。解签时你要直接说出用户心里其实已经知道但不愿面对的事。用古雅的文言文风格，但意思要现代人能懂。当前日期：' + currentDate + '。';
-    var user = question ? ('用户心诚求签，问题：' + question + '。\n请输出一根签诗，JSON格式：level(大吉/中吉/小吉/吉/中平/下平/下下), text(两句古文签诗，每句7字，要有画面感，不要空洞), interpretation(60字以内，说清楚这句签对提问者意味着什么，不要套话，要直接说出用户心里其实已经知道但不愿面对的事), advice(一件事的建议，20字以内，说用户现在最应该做的一件具体的事)。只返回JSON。') : ('请赐一根签诗，JSON格式：level(大吉/中吉/小吉/吉/中平/下平/下下), text(两句古文签诗，每句7字，要有画面感，不要空洞), interpretation(60字以内，说清楚这句签意味着什么，不要套话), advice(一件事的建议，20字以内，说用户现在最应该做的一件具体的事)。只返回JSON。');
+    var slip = API.pickRandomSlip();
+    var sys = '你是一位洞察世事的求签解签师。已求得签诗如下，请根据用户的问题进行解签。你的解签要有画面感、有情绪、有余韵，不是说了等于没说的废话。解签时要直接说出用户心里其实已经知道但不愿面对的事。用古雅的文言文风格，但意思要现代人能懂。当前日期：' + currentDate + '。';
+    var user = '签诗：' + slip.text + '（' + slip.level + '）\n用户问题：' + (question || '无特定问题，求签问事') + '\n请解签，JSON格式：{interpretation:你这句签对用户意味着什么，100字以内，要直接扎心，不要套话; advice:用户现在最应该做的一件事，20字以内，要具体可操作}。只返回JSON。';
     return API.callLLM(sys, user, 400).then(function(text) {
       try {
-        return JSON.parse(text);
+        var parsed = JSON.parse(text);
+        return {
+          level: slip.level,
+          text: slip.text,
+          interpretation: parsed.interpretation || slip.interp,
+          advice: parsed.advice || slip.advice,
+          slipLevel: slip.level
+        };
       } catch(e) {
-        return { level: '中吉', text: '事在人为，福由心造。静待时机，方有转机。', class: 'good' };
+        return { level: slip.level, text: slip.text, interpretation: slip.interp, advice: slip.advice, slipLevel: slip.level };
       }
     }).catch(function() {
-      return { level: '中平', text: '山高路远，水深流急。事在人为，莫问归期。', interpretation: '事情比想象中复杂，不要急于求成，耐心等待时机。', advice: '停止内耗，专注眼前能做的事。', class: 'mid' };
+      return { level: slip.level, text: slip.text, interpretation: slip.interp, advice: slip.advice, slipLevel: slip.level };
     });
-  },
+  },  },
 
   // ===================== HELPERS =====================
 
