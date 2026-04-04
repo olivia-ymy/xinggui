@@ -704,10 +704,14 @@ var API = {
     {level:'小吉',text:'林花谢了春红，太匆匆',interp:'美好总是短暂的。',advice:'珍惜当下'}
   ],
 
-  // Pick a random slip
+  // Pick a random slip using Fisher-Yates shuffle
   pickRandomSlip: function() {
-    var slips = API.FORTUNE_SLIPS;
-    return slips[Math.floor(Math.random() * slips.length)];
+    var slips = API.FORTUNE_SLIPS.slice();
+    for (var i = slips.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = slips[i]; slips[i] = slips[j]; slips[j] = tmp;
+    }
+    return slips[0];
   },
 
   // Step 1: Pick a random fortune slip (synchronous, no LLM)
