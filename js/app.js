@@ -220,15 +220,69 @@ function renderChart() {
     '<form id="chartForm" style="display:flex;flex-direction:column;gap:16px;">' +
     '<div><label class="form-label">出生日期</label><input type="date" class="form-input" id="cDate" required></div>' +
     '<div><label class="form-label">出生时间</label><input type="time" class="form-input" id="cTime" required></div>' +
-    '<div><label class="form-label">出生城市</label><input type="text" class="form-input" id="cCity" placeholder="例如：北京、上海" required></div>' +
+    '<div><label class="form-label">出生城市</label>' +
+    '<select class="form-input" id="cCity" required>' +
+    '<option value="">请选择城市</option>' +
+    '<option value="北京">北京</option>' +
+    '<option value="上海">上海</option>' +
+    '<option value="广州">广州</option>' +
+    '<option value="深圳">深圳</option>' +
+    '<option value="成都">成都</option>' +
+    '<option value="杭州">杭州</option>' +
+    '<option value="南京">南京</option>' +
+    '<option value="武汉">武汉</option>' +
+    '<option value="西安">西安</option>' +
+    '<option value="重庆">重庆</option>' +
+    '<option value="天津">天津</option>' +
+    '<option value="苏州">苏州</option>' +
+    '<option value="郑州">郑州</option>' +
+    '<option value="长沙">长沙</option>' +
+    '<option value="沈阳">沈阳</option>' +
+    '<option value="青岛">青岛</option>' +
+    '<option value="济南">济南</option>' +
+    '<option value="大连">大连</option>' +
+    '<option value="厦门">厦门</option>' +
+    '<option value="福州">福州</option>' +
+    '<option value="昆明">昆明</option>' +
+    '<option value="贵阳">贵阳</option>' +
+    '<option value="南宁">南宁</option>' +
+    '<option value="海口">海口</option>' +
+    '<option value="拉萨">拉萨</option>' +
+    '<option value="乌鲁木齐">乌鲁木齐</option>' +
+    '<option value="兰州">兰州</option>' +
+    '<option value="银川">银川</option>' +
+    '<option value="西宁">西宁</option>' +
+    '<option value="呼和浩特">呼和浩特</option>' +
+    '<option value="其他城市">其他城市</option>' +
+    '</select>' +
+    '<input type="text" class="form-input" id="cCityCustom" placeholder="请输入城市名称（用于经纬度计算）" style="margin-top:8px;display:none;">' +
+    '</div>' +
     '<button type="submit" class="btn btn-primary" style="width:100%;">✧ 开始分析</button></form>' +
     '<div id="chartResult" style="margin-top:20px;"></div></div></div>';
+
+  document.getElementById('cCity').addEventListener('change', function() {
+    var customInput = document.getElementById('cCityCustom');
+    if (this.value === '其他城市') {
+      customInput.style.display = 'block';
+      customInput.required = true;
+    } else {
+      customInput.style.display = 'none';
+      customInput.required = false;
+      customInput.value = '';
+    }
+  });
 
   document.getElementById('chartForm').addEventListener('submit', function(e) {
     e.preventDefault();
     var date = document.getElementById('cDate').value;
     var time = document.getElementById('cTime').value;
-    var city = document.getElementById('cCity').value;
+    var citySelect = document.getElementById('cCity');
+    var cityCustom = document.getElementById('cCityCustom');
+    var city = citySelect.value === '其他城市' ? cityCustom.value : citySelect.value;
+    if (!city) {
+      alert('请选择或输入出生城市');
+      return;
+    }
     var resultDiv = document.getElementById('chartResult');
     resultDiv.innerHTML = '<div style="text-align:center;padding:20px;"><p style="color:var(--text-muted);">正在为您排盘...</p></div>';
 
