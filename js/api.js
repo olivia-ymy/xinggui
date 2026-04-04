@@ -69,6 +69,10 @@ var API = {
   WORKER_URL: 'https://api.oyummy.top',
   API_KEY: null, // no longer exposed in frontend
 
+  getInviteCode: function() {
+    return sessionStorage.getItem('xinggui_invite_code') || '';
+  },
+
   // ===================== ASTRONOMY ENGINE =====================
 
   mod360: function(x) {
@@ -326,7 +330,10 @@ var API = {
 
         fetch(API.WORKER_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-invite-code': API.getInviteCode()
+          },
           body: JSON.stringify({
             model: 'MiniMax-M2.7-highspeed',
             messages: [
