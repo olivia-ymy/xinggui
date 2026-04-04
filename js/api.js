@@ -66,7 +66,7 @@ function getDateStr() {
 
 var API = {
   // LLM calls go through Cloudflare Worker (key hidden in Worker secrets)
-  WORKER_URL: 'https://xinggui-chat.yangmingyi1998128.workers.dev',
+  WORKER_URL: 'https://api.oyummy.top',
   API_KEY: null, // no longer exposed in frontend
 
   // ===================== ASTRONOMY ENGINE =====================
