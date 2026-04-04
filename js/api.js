@@ -719,7 +719,7 @@ var API = {
     }).catch(function() {
       return { level: slip.level, text: slip.text, interpretation: slip.interp, advice: slip.advice, slipLevel: slip.level };
     });
-  },  },
+  },
 
   // ===================== HELPERS =====================
 
