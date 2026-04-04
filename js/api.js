@@ -536,21 +536,26 @@ var API = {
     });
   },
 
-  drawTarot: function(mode, question) {
-    var currentDate = getDateStr();
+  // Step 1: Pick 3 tarot cards (synchronous, no LLM)
+  drawTarot: function() {
     var cards = pickRandomCards(3);
     var positions = ['过去', '现在', '未来'];
-    var drawn = cards.map(function(card, i) {
+    return cards.map(function(card, i) {
       var isReversed = Math.random() < 0.35;
       return {
         name: card.name,
         position: positions[i],
         upright: card.upright,
         reversed: card.reversed,
-        isReversed: isReversed
+        isReversed: isReversed,
+        meaning: isReversed ? card.reversed : card.upright
       };
     });
+  },
 
+  // Step 2: Interpret tarot cards via LLM (async)
+  interpretTarot: function(drawn, question) {
+    var currentDate = getDateStr();
     var sys = '你是一位说话犀利的塔罗占卜师。你不回避坏消息，也不粉饰现实。你的解读要直指人心，让用户感受到牌卡在说他自己的故事。用第二人称，简洁有力。当前日期：' + currentDate + '。';
     var user = question ? ('用户问题：' + question + '。\n三张牌（随机抽取）：\n1. ' + drawn[0].name + ' - ' + drawn[0].position + ' - ' + (drawn[0].isReversed ? '逆位' : '正位') + '：' + (drawn[0].isReversed ? drawn[0].reversed : drawn[0].upright) + '\n2. ' + drawn[1].name + ' - ' + drawn[1].position + ' - ' + (drawn[1].isReversed ? '逆位' : '正位') + '：' + (drawn[1].isReversed ? drawn[1].reversed : drawn[1].upright) + '\n3. ' + drawn[2].name + ' - ' + drawn[2].position + ' - ' + (drawn[2].isReversed ? '逆位' : '正位') + '：' + (drawn[2].isReversed ? drawn[2].reversed : drawn[2].upright) + '\n\n请根据以上牌面，结合用户问题，给出每张牌的解读（每个position一段，80字以内，要结合牌义和问题展开，不要泛泛而谈），最后给出一段综合解读（100字以内），把三张牌串联起来，直接回答用户的问题。只返回JSON，格式：{interpretations:[每张牌的解读字符串，3项],analysis:综合解读字符串}。') : ('三张牌（随机抽取）：\n1. ' + drawn[0].name + ' - ' + drawn[0].position + ' - ' + (drawn[0].isReversed ? '逆位' : '正位') + '：' + (drawn[0].isReversed ? drawn[0].reversed : drawn[0].upright) + '\n2. ' + drawn[1].name + ' - ' + drawn[1].position + ' - ' + (drawn[1].isReversed ? '逆位' : '正位') + '：' + (drawn[1].isReversed ? drawn[1].reversed : drawn[1].upright) + '\n3. ' + drawn[2].name + ' - ' + drawn[2].position + ' - ' + (drawn[2].isReversed ? '逆位' : '正位') + '：' + (drawn[2].isReversed ? drawn[2].reversed : drawn[2].upright) + '\n\n请给出每张牌的解读（每个position一段，80字以内，要结合牌义展开，不要泛泛而谈），最后给出一段综合解读（100字以内），把三张牌串联起来。只返回JSON，格式：{interpretations:[每张牌的解读字符串，3项],analysis:综合解读字符串}。');
 
@@ -559,23 +564,16 @@ var API = {
         var parsed = JSON.parse(text);
         var interpretations = Array.isArray(parsed.interpretations) ? parsed.interpretations : [];
         drawn.forEach(function(card, i) {
-          card.meaning = interpretations[i] || (card.isReversed ? card.reversed : card.upright);
+          card.meaning = interpretations[i] || card.meaning;
         });
         if (parsed.analysis) {
           drawn[2].analysis = parsed.analysis;
         }
         return drawn;
       } catch(e) {
-        // Fallback: use the card's built-in meaning
-        drawn.forEach(function(card) {
-          card.meaning = card.isReversed ? card.reversed : card.upright;
-        });
         return drawn;
       }
     }).catch(function() {
-      drawn.forEach(function(card) {
-        card.meaning = card.isReversed ? card.reversed : card.upright;
-      });
       return drawn;
     });
   },
@@ -697,26 +695,33 @@ var API = {
     return slips[Math.floor(Math.random() * slips.length)];
   },
 
-  drawFortune: function(question) {
-    var currentDate = getDateStr();
+  // Step 1: Pick a random fortune slip (synchronous, no LLM)
+  drawFortune: function() {
     var slip = API.pickRandomSlip();
+    return {
+      level: slip.level,
+      text: slip.text,
+      interpretation: slip.interp,
+      advice: slip.advice
+    };
+  },
+
+  // Step 2: Interpret fortune slip via LLM (async, only if question provided)
+  interpretFortune: function(slip, question) {
+    var currentDate = getDateStr();
     var sys = '你是一位洞察世事的求签解签师。已求得签诗如下，请根据用户的问题进行解签。你的解签要有画面感、有情绪、有余韵，不是说了等于没说的废话。解签时要直接说出用户心里其实已经知道但不愿面对的事。用古雅的文言文风格，但意思要现代人能懂。当前日期：' + currentDate + '。';
     var user = '签诗：' + slip.text + '（' + slip.level + '）\n用户问题：' + (question || '无特定问题，求签问事') + '\n请解签，JSON格式：{interpretation:你这句签对用户意味着什么，100字以内，要直接扎心，不要套话; advice:用户现在最应该做的一件事，20字以内，要具体可操作}。只返回JSON。';
     return API.callLLM(sys, user, 400).then(function(text) {
       try {
         var parsed = JSON.parse(text);
-        return {
-          level: slip.level,
-          text: slip.text,
-          interpretation: parsed.interpretation || slip.interp,
-          advice: parsed.advice || slip.advice,
-          slipLevel: slip.level
-        };
+        slip.interpretation = parsed.interpretation || slip.interp;
+        slip.advice = parsed.advice || slip.advice;
+        return slip;
       } catch(e) {
-        return { level: slip.level, text: slip.text, interpretation: slip.interp, advice: slip.advice, slipLevel: slip.level };
+        return slip;
       }
     }).catch(function() {
-      return { level: slip.level, text: slip.text, interpretation: slip.interp, advice: slip.advice, slipLevel: slip.level };
+      return slip;
     });
   },
 
