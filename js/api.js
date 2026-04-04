@@ -316,39 +316,46 @@ var API = {
   // ===================== LLM CALL =====================
 
   callLLM: function(systemPrompt, userPrompt, maxTokens) {
-    return new Promise(function(resolve, reject) {
-      var done = false;
-      var timer = setTimeout(function() {
-        if (!done) { done = true; reject(new Error('timeout')); }
-      }, 45000);
-      fetch(API.WORKER_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'MiniMax-M2.7-highspeed',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ],
-          max_tokens: maxTokens || 800,
-          temperature: 0.7
-        })
-      }).then(function(res) {
-        clearTimeout(timer);
-        if (!res.ok) throw new Error('API Error ' + res.status);
-        return res.json();
-      }).then(function(data) {
-        var reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-        if (!reply) throw new Error('Empty');
-        done = true;
-        resolve(reply);
-      }).catch(function(err) {
-        clearTimeout(timer);
-        if (!done) { done = true; reject(err); }
+    var maxRetries = 1;
+    function attempt(n) {
+      return new Promise(function(resolve, reject) {
+        var done = false;
+        var timer = setTimeout(function() {
+          if (!done) { done = true; reject(new Error('timeout')); }
+        }, 45000);
+
+        fetch(API.WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'MiniMax-M2.7-highspeed',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            max_tokens: maxTokens || 800,
+            temperature: 0.7
+          })
+        }).then(function(resp) {
+          clearTimeout(timer);
+          done = true;
+          if (!resp.ok) reject(new Error('HTTP ' + resp.status));
+          else resp.text().then(function(text) { resolve(text); }).catch(reject);
+        }).catch(function(err) {
+          clearTimeout(timer);
+          if (!done) {
+            done = true;
+            if (n < maxRetries) {
+              console.log('LLM retry ' + (n+1));
+              setTimeout(function() { attempt(n+1).then(resolve).catch(reject); }, 3000);
+            } else {
+              reject(err);
+            }
+          }
+        });
       });
-    });
+    }
+    return attempt(0);
   },
 
   // ===================== FEATURES =====================
