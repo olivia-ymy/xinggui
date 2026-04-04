@@ -283,8 +283,9 @@ function renderTarot() {
     var btn = document.getElementById('tarotDrawBtn');
     btn.disabled = true;
     btn.textContent = '洗牌中...';
+    document.getElementById('tarotResult').innerHTML = '<div style="text-align:center;padding:20px;"><p style="color:var(--text-muted);">牌阵生成中...</p></div>';
 
-    API.drawTarot('three', question).then(function(cards) {
+    API.drawTarot().then(function(cards) {
       var html = '';
       if (question) {
         html += '<div style="margin-bottom:16px;padding:12px 16px;background:rgba(139,92,246,0.06);border-radius:8px;border-left:3px solid var(--accent-purple);">' +
@@ -303,28 +304,46 @@ function renderTarot() {
           meanings + '</div>';
       });
       html += '</div>';
-      html += '<div style="margin-top:20px;text-align:left;padding:16px;background:var(--bg-tertiary);border-radius:8px;">';
-      cards.forEach(function(card, i) {
-        var meaning = card.meaning || (card.isReversed ? card.reversed : card.upright);
-        var hasAnalysis = card.analysis && i === cards.length - 1;
-        html += '<div style="margin-bottom:' + (hasAnalysis ? '16px' : '12px') + ';"><strong style="color:var(--accent-purple);">' + card.position + '：' + card.name + '</strong>' +
-          '<p style="color:var(--text-secondary);font-size:0.9rem;margin:4px 0 0;">' + meaning + '</p></div>';
-        if (hasAnalysis) {
-          html += '<div style="margin-top:16px;padding:12px;background:rgba(139,92,246,0.08);border-radius:6px;border-left:3px solid var(--accent-cyan);">' +
-            '<strong style="color:var(--accent-cyan);font-size:0.9rem;">✦ 综合解读</strong>' +
-            '<p style="color:var(--text-primary);font-size:0.9rem;margin:6px 0 0;line-height:1.6;">' + card.analysis + '</p></div>';
-        }
-      });
+      html += '<div id="tarotInterpretation" style="margin-top:20px;text-align:left;padding:16px;background:var(--bg-tertiary);border-radius:8px;">';
+      html += '<div id="tarotLoading" style="text-align:center;padding:16px;color:var(--text-muted);font-size:0.9rem;">正在解读...</div>';
       html += '</div>';
       document.getElementById('tarotResult').innerHTML = html;
       btn.disabled = false;
       btn.textContent = '🃏 再抽一次';
+
+      if (question) {
+        API.interpretTarot(cards, question).then(function(interpreted) {
+          var interpHtml = '';
+          interpreted.forEach(function(card, i) {
+            var hasAnalysis = card.analysis && i === interpreted.length - 1;
+            interpHtml += '<div style="margin-bottom:' + (hasAnalysis ? '16px' : '12px') + ';"><strong style="color:var(--accent-purple);">' + card.position + '：' + card.name + '</strong>' +
+              '<p style="color:var(--text-secondary);font-size:0.9rem;margin:4px 0 0;">' + card.meaning + '</p></div>';
+            if (hasAnalysis) {
+              interpHtml += '<div style="margin-top:16px;padding:12px;background:rgba(139,92,246,0.08);border-radius:6px;border-left:3px solid var(--accent-cyan);">' +
+                '<strong style="color:var(--accent-cyan);font-size:0.9rem;">✦ 综合解读</strong>' +
+                '<p style="color:var(--text-primary);font-size:0.9rem;margin:6px 0 0;line-height:1.6;">' + card.analysis + '</p></div>';
+            }
+          });
+          document.getElementById('tarotInterpretation').innerHTML = interpHtml;
+        }).catch(function() {
+          document.getElementById('tarotLoading').innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;">解读加载失败，请刷新重试</div>';
+        });
+      } else {
+        var basicHtml = '';
+        cards.forEach(function(card, i) {
+          basicHtml += '<div style="margin-bottom:12px;"><strong style="color:var(--accent-purple);">' + card.position + '：' + card.name + '</strong>' +
+            '<p style="color:var(--text-secondary);font-size:0.9rem;margin:4px 0 0;">' + card.meaning + '</p></div>';
+        });
+        document.getElementById('tarotInterpretation').innerHTML = '<div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px;">💡 填写上面的问题可获得深度解读</div>' + basicHtml;
+      }
     }).catch(function() {
-      document.getElementById('tarotResult').innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);">⚠️ 获取失败，请稍后重试</div>';
+      document.getElementById('tarotResult').innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);">抽卡失败，请刷新重试</div>';
       btn.disabled = false;
-      btn.textContent = '🃏 抽取三张牌';
+      btn.textContent = '🃏 抽取塔罗牌';
     });
   });
+
+
 }
 
 function renderCompatibility() {
@@ -397,26 +416,42 @@ function renderFortune() {
     btn.textContent = '求签中...';
     document.getElementById('fortuneResult').innerHTML = '<div style="text-align:center;padding:20px;"><p style="color:var(--text-muted);">签筒摇晃中...</p></div>';
 
-    API.drawFortune(question).then(function(data) {
-      var levelColors = { '大吉': 'var(--accent-gold)', '中吉': 'var(--accent-purple)', '小吉': 'var(--accent-cyan)', '吉': 'var(--accent-cyan)', '中平': 'var(--text-muted)', '下平': 'var(--text-muted)', '下下': 'var(--danger)' };
-      var levelColor = levelColors[data.level] || 'var(--text-muted)';
-      var isGood = data.level.indexOf('吉') !== -1;
-      document.getElementById('fortuneResult').innerHTML = '<div style="margin-top:16px;padding:20px;background:var(--bg-tertiary);border-radius:8px;">' +
-        '<div style="text-align:center;margin-bottom:16px;">' +
-        '<div style="font-size:4rem;margin-bottom:12px;">' + (isGood ? '✨' : data.level === '下下' ? '⚠️' : '🔮') + '</div>' +
-        '<div style="font-size:1.5rem;color:' + levelColor + ';font-weight:700;margin-bottom:8px;">' + data.level + '</div>' +
-        '<div style="padding:16px;background:var(--bg-primary);border-radius:8px;margin:12px 0;font-size:1.1rem;color:var(--text-primary);font-style:italic;text-align:center;line-height:1.8;">' + (data.text || data.poem || '签文读取中...') + '</div></div>' +
-        (data.interpretation ? '<div style="margin-bottom:12px;padding:12px;background:rgba(139,92,246,0.06);border-radius:6px;border-left:3px solid var(--accent-purple);"><span style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6;">📝 ' + data.interpretation + '</span></div>' : '') +
-        (data.advice ? '<div style="margin-bottom:12px;padding:12px;background:rgba(34,211,238,0.06);border-radius:6px;border-left:3px solid var(--accent-cyan);"><span style="color:var(--accent-cyan);font-size:0.9rem;">👉 ' + data.advice + '</span></div>' : '') +
-        '<p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">心诚则灵，签文仅供参考</p></div>';
-      btn.disabled = false;
-      btn.textContent = '🏺 再求一签';
-    }).catch(function() {
-      document.getElementById('fortuneResult').innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);">求签失败，请稍后重试</div>';
-      btn.disabled = false;
-      btn.textContent = '🏺 摇筒求签';
-    });
+    var slip = API.drawFortune();
+    var levelColors = { '大吉': 'var(--accent-gold)', '中吉': 'var(--accent-purple)', '小吉': 'var(--accent-cyan)', '吉': 'var(--accent-cyan)', '中平': 'var(--text-muted)', '下平': 'var(--text-muted)', '下下': 'var(--danger)' };
+    var levelColor = levelColors[slip.level] || 'var(--text-muted)';
+    var isGood = slip.level.indexOf('吉') !== -1;
+    var slipIcon = isGood ? '✨' : slip.level === '下下' ? '⚠️' : '🔮';
+
+    document.getElementById('fortuneResult').innerHTML = '<div style="margin-top:16px;padding:20px;background:var(--bg-tertiary);border-radius:8px;">' +
+      '<div style="text-align:center;margin-bottom:16px;">' +
+      '<div style="font-size:4rem;margin-bottom:12px;">' + slipIcon + '</div>' +
+      '<div style="font-size:1.5rem;color:' + levelColor + ';font-weight:700;margin-bottom:8px;">' + slip.level + '</div>' +
+      '<div style="padding:16px;background:var(--bg-primary);border-radius:8px;margin:12px 0;font-size:1.1rem;color:var(--text-primary);font-style:italic;text-align:center;line-height:1.8;">' + slip.text + '</div></div>' +
+      '<div id="fortuneInterp"></div><div id="fortuneAdv"></div><div id="fortuneLLMLoading" style="text-align:center;padding:8px;color:var(--text-muted);font-size:0.85rem;"></div></div>';
+    btn.disabled = false;
+    btn.textContent = '🏺 再求一次';
+
+    if (question) {
+      document.getElementById('fortuneLLMLoading').textContent = '正在深度解读...';
+      API.interpretFortune(slip, question).then(function(interpreted) {
+        document.getElementById('fortuneInterp').innerHTML = '<div style="margin-bottom:12px;padding:12px;background:rgba(139,92,246,0.06);border-radius:6px;border-left:3px solid var(--accent-purple);"><span style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6;">📝 ' + interpreted.interpretation + '</span></div>';
+        if (interpreted.advice) {
+          document.getElementById('fortuneAdv').innerHTML = '<div style="margin-top:8px;padding:10px 12px;background:rgba(34,211,238,0.06);border-radius:6px;border-left:3px solid var(--accent-cyan);"><span style="color:var(--accent-cyan);font-size:0.85rem;">👉 ' + interpreted.advice + '</span></div>';
+        }
+        document.getElementById('fortuneLLMLoading').textContent = '';
+      }).catch(function() {
+        document.getElementById('fortuneLLMLoading').textContent = '解读加载失败';
+      });
+    } else {
+      document.getElementById('fortuneInterp').innerHTML = '<div style="margin-bottom:12px;padding:12px;background:rgba(139,92,246,0.06);border-radius:6px;border-left:3px solid var(--accent-purple);"><span style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6;">📝 ' + slip.interpretation + '</span></div>';
+      if (slip.advice) {
+        document.getElementById('fortuneAdv').innerHTML = '<div style="margin-top:8px;padding:10px 12px;background:rgba(34,211,238,0.06);border-radius:6px;border-left:3px solid var(--accent-cyan);"><span style="color:var(--accent-cyan);font-size:0.85rem;">👉 ' + slip.advice + '</span></div>';
+      }
+      document.getElementById('fortuneLLMLoading').innerHTML = '<span style="color:var(--text-muted);">💡 填写问题可获得专属解读</span>';
+    }
   });
+
+
 }
 
 // ==================== FATE ====================
