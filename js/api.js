@@ -327,6 +327,7 @@ var API = {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          model: 'MiniMax-M2.7-highspeed',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt }
