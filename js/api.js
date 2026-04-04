@@ -320,7 +320,7 @@ var API = {
       var done = false;
       var timer = setTimeout(function() {
         if (!done) { done = true; reject(new Error('timeout')); }
-      }, 25000);
+      }, 45000);
       fetch(API.WORKER_URL, {
         method: 'POST',
         headers: {
